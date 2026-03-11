@@ -34,3 +34,4 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SCHEDULING_APPOINTMENTS_6DBE9 }}
           projectId: scheduling-appointments-6dbe9
+          expires: 1h
