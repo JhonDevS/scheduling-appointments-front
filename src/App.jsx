@@ -4,7 +4,7 @@ function App() {
 
   return (
     <>
-      <span className='text-sm font-bold underline'>Hello World</span>
+      <span className= 'text-xl font-bold'>Hello guys</span>
     </>
   )
 }
