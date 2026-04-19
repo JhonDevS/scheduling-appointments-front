@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "title": "Consulta inicial",
+    "clientName": "Juan Pérez",
+    "clientEmail": "juan.perez@email.com",
+    "clientPhone": "+1234567890",
+    "start": "2026-04-17T14:30:00",
+    "end": "2026-04-17T16:00:00",
+    "status": "confirmed",
+    "notes": "Alineado con el evento de calendario del 17 abr",
+    "serviceType": "consulting"
+  },
+  {
+    "id": 2,
+    "title": "Seguimiento proyecto",
+    "clientName": "María García",
+    "clientEmail": "maria.garcia@email.com",
+    "clientPhone": "+1234567891",
+    "start": "2026-04-18T10:00:00",
+    "end": "2026-04-18T11:00:00",
+    "status": "pending",
+    "notes": "18 abr por la mañana",
+    "serviceType": "development"
+  },
+  {
+    "id": 3,
+    "title": "Entrega de producto",
+    "clientName": "Carlos López",
+    "clientEmail": "carlos.lopez@email.com",
+    "clientPhone": "+1234567892",
+    "start": "2026-04-22T12:00:00",
+    "end": "2026-04-22T13:00:00",
+    "status": "confirmed",
+    "notes": "Después del bloque de documentación",
+    "serviceType": "delivery"
+  },
+  {
+    "id": 4,
+    "title": "Capacitación usuario",
+    "clientName": "Ana Martínez",
+    "clientEmail": "ana.martinez@email.com",
+    "clientPhone": "+1234567893",
+    "start": "2026-04-24T15:00:00",
+    "end": "2026-04-24T16:30:00",
+    "status": "confirmed",
+    "notes": "Mismo día que el taller interno",
+    "serviceType": "training"
+  }
+]
