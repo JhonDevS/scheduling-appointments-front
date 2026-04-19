@@ -1,12 +1,9 @@
 import './App.css'
 
-function App() {
+import Login from './components/Login'
 
-  return (
-    <>
-      <span className= 'text-xl font-bold'>Hello guys</span>
-    </>
-  )
+function App() {
+  return <Login />
 }
 
 export default App
