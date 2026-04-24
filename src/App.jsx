@@ -1,23 +1,23 @@
 import './App.css'
 
-import { Navigate,Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 
-import MyCalendar from './components/Calendar'
-import Home from './components/Home'
-import Login from './components/Login'
+import Calendar from './components/calendar/Calendar'
+import Home from './components/home/Home'
+import Login from './components/login/Login'
+import { AuthProvider, useAuth } from './hooks'
 
-const MOCK_USER = 'admin@saludya.com'
-const MOCK_PASSWORD = '123456'
-
+// Componente para proteger rutas
 function ProtectedRoute({ children }) {
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true'
+  const { isAuthenticated } = useAuth()
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
   }
   return children
 }
 
-function App() {
+function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
@@ -33,7 +33,7 @@ function App() {
         path="/calendar"
         element={
           <ProtectedRoute>
-            <MyCalendar />
+            <Calendar />
           </ProtectedRoute>
         }
       />
@@ -42,5 +42,12 @@ function App() {
   )
 }
 
-export { MOCK_PASSWORD,MOCK_USER }
+function App() {
+  return (
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
+  )
+}
+
 export default App

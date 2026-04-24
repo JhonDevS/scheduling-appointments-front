@@ -1,0 +1,29 @@
+.calendar-container {
+  padding: 1rem;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.calendar-loading,
+.calendar-error {
+  text-align: center;
+  padding: 1rem;
+}
+
+.calendar-error {
+  color: #dc2626;
+  background: #fef2f2;
+  border-radius: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.calendar-wrapper {
+  height: 600px;
+}
