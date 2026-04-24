@@ -1,24 +1,46 @@
 import './App.css'
 
-import Calendar from './components/Calendar'
+import { Navigate,Route, Routes } from 'react-router-dom'
+
+import MyCalendar from './components/Calendar'
+import Home from './components/Home'
+import Login from './components/Login'
+
+const MOCK_USER = 'admin@saludya.com'
+const MOCK_PASSWORD = '123456'
+
+function ProtectedRoute({ children }) {
+  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true'
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+  return children
+}
 
 function App() {
-
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Scheduling Appointments</h1>
-        <p className="text-gray-600">Manage your appointments and calendar events</p>
-      </header>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Calendar Section */}
-        <div className="lg:col-span-2">
-          <Calendar />
-        </div>
-      </div>
-    </div>
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route
+        path="/home"
+        element={
+          <ProtectedRoute>
+            <Home />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/calendar"
+        element={
+          <ProtectedRoute>
+            <MyCalendar />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
   )
 }
 
+export { MOCK_PASSWORD,MOCK_USER }
 export default App
