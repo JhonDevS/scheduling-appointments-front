@@ -3,6 +3,8 @@ import './css/Login.css'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { Button } from '../../design-system/components/Button'
+import { Input } from '../../design-system/components/Input'
 import { useAuth } from '../../hooks'
 
 function Login() {
@@ -61,7 +63,7 @@ function Login() {
 
     if (view === 'login') {
       newErrors = validateLogin()
-      
+
       const result = login(formData.email, formData.password)
       if (result.success) {
         navigate('/home')
@@ -82,7 +84,6 @@ function Login() {
       return
     }
 
-    // Aquí iría la lógica de autenticación con Firebase o backend
     console.log('Form submitted:', { view, ...formData })
   }
 
@@ -93,35 +94,31 @@ function Login() {
         <p className="app-subtitle">Bienvenido de nuevo</p>
       </div>
 
-      <div className="form-group">
-        <label htmlFor="email">Correo electrónico</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          value={formData.email}
-          onChange={handleInputChange}
-          placeholder="correo@ejemplo.com"
-          className={errors.email ? 'error' : ''}
-        />
-        {errors.email && <span className="error-message">{errors.email}</span>}
-      </div>
+      <Input
+        label="Correo electrónico"
+        type="email"
+        id="email"
+        name="email"
+        value={formData.email}
+        onChange={handleInputChange}
+        placeholder="correo@ejemplo.com"
+        error={errors.email}
+      />
 
-      <div className="form-group">
-        <label htmlFor="password">Contraseña</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          value={formData.password}
-          onChange={handleInputChange}
-          placeholder="••••••••"
-          className={errors.password ? 'error' : ''}
-        />
-        {errors.password && <span className="error-message">{errors.password}</span>}
-      </div>
+      <Input
+        label="Contraseña"
+        type="password"
+        id="password"
+        name="password"
+        value={formData.password}
+        onChange={handleInputChange}
+        placeholder="••••••••"
+        error={errors.password}
+      />
 
-      <button type="submit" className="btn-primary">Iniciar sesión</button>
+      <Button type="submit" variant="primary">
+        Iniciar sesión
+      </Button>
 
       <div className="form-links">
         <button type="button" className="link-btn" onClick={() => setView('forgot-password')}>
@@ -153,62 +150,50 @@ function Login() {
       </div>
 
       <div className="form-row">
-        <div className="form-group">
-          <label htmlFor="name">Nombre</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleInputChange}
-            placeholder="Juan"
-            className={errors.name ? 'error' : ''}
-          />
-          {errors.name && <span className="error-message">{errors.name}</span>}
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="lastName">Apellido</label>
-          <input
-            type="text"
-            id="lastName"
-            name="lastName"
-            value={formData.lastName}
-            onChange={handleInputChange}
-            placeholder="Pérez"
-            className={errors.lastName ? 'error' : ''}
-          />
-          {errors.lastName && <span className="error-message">{errors.lastName}</span>}
-        </div>
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="phone">Teléfono</label>
-        <input
-          type="tel"
-          id="phone"
-          name="phone"
-          value={formData.phone}
+        <Input
+          label="Nombre"
+          type="text"
+          id="name"
+          name="name"
+          value={formData.name}
           onChange={handleInputChange}
-          placeholder="+51 999 999 999"
-          className={errors.phone ? 'error' : ''}
+          placeholder="Juan"
+          error={errors.name}
         />
-        {errors.phone && <span className="error-message">{errors.phone}</span>}
+
+        <Input
+          label="Apellido"
+          type="text"
+          id="lastName"
+          name="lastName"
+          value={formData.lastName}
+          onChange={handleInputChange}
+          placeholder="Pérez"
+          error={errors.lastName}
+        />
       </div>
 
-      <div className="form-group">
-        <label htmlFor="email">Correo electrónico</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          value={formData.email}
-          onChange={handleInputChange}
-          placeholder="correo@ejemplo.com"
-          className={errors.email ? 'error' : ''}
-        />
-        {errors.email && <span className="error-message">{errors.email}</span>}
-      </div>
+      <Input
+        label="Teléfono"
+        type="tel"
+        id="phone"
+        name="phone"
+        value={formData.phone}
+        onChange={handleInputChange}
+        placeholder="+51 999 999 999"
+        error={errors.phone}
+      />
+
+      <Input
+        label="Correo electrónico"
+        type="email"
+        id="email"
+        name="email"
+        value={formData.email}
+        onChange={handleInputChange}
+        placeholder="correo@ejemplo.com"
+        error={errors.email}
+      />
 
       <div className="form-group">
         <label htmlFor="role">Selecciona tu rol</label>
@@ -241,35 +226,31 @@ function Login() {
         {errors.role && <span className="error-message">{errors.role}</span>}
       </div>
 
-      <div className="form-group">
-        <label htmlFor="password">Contraseña</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          value={formData.password}
-          onChange={handleInputChange}
-          placeholder="••••••••"
-          className={errors.password ? 'error' : ''}
-        />
-        {errors.password && <span className="error-message">{errors.password}</span>}
-      </div>
+      <Input
+        label="Contraseña"
+        type="password"
+        id="password"
+        name="password"
+        value={formData.password}
+        onChange={handleInputChange}
+        placeholder="•••••���••"
+        error={errors.password}
+      />
 
-      <div className="form-group">
-        <label htmlFor="confirmPassword">Confirmar contraseña</label>
-        <input
-          type="password"
-          id="confirmPassword"
-          name="confirmPassword"
-          value={formData.confirmPassword}
-          onChange={handleInputChange}
-          placeholder="••••••••"
-          className={errors.confirmPassword ? 'error' : ''}
-        />
-        {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
-      </div>
+      <Input
+        label="Confirmar contraseña"
+        type="password"
+        id="confirmPassword"
+        name="confirmPassword"
+        value={formData.confirmPassword}
+        onChange={handleInputChange}
+        placeholder="••••••••"
+        error={errors.confirmPassword}
+      />
 
-      <button type="submit" className="btn-primary">Crear cuenta</button>
+      <Button type="submit" variant="primary">
+        Crear cuenta
+      </Button>
 
       <p className="register-prompt">
         ¿Ya tienes una cuenta?{' '}
@@ -287,21 +268,20 @@ function Login() {
         <p className="app-subtitle">Ingresa tu correo para recuperar el acceso</p>
       </div>
 
-      <div className="form-group">
-        <label htmlFor="email">Correo electrónico</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          value={formData.email}
-          onChange={handleInputChange}
-          placeholder="correo@ejemplo.com"
-          className={errors.email ? 'error' : ''}
-        />
-        {errors.email && <span className="error-message">{errors.email}</span>}
-      </div>
+      <Input
+        label="Correo electrónico"
+        type="email"
+        id="email"
+        name="email"
+        value={formData.email}
+        onChange={handleInputChange}
+        placeholder="correo@ejemplo.com"
+        error={errors.email}
+      />
 
-      <button type="submit" className="btn-primary">Enviar enlace de recuperación</button>
+      <Button type="submit" variant="primary">
+        Enviar enlace de recuperación
+      </Button>
 
       <p className="register-prompt">
         ¿Recordaste tu contraseña?{' '}
@@ -319,21 +299,20 @@ function Login() {
         <p className="app-subtitle">Ingresa tu correo para recuperar tu cuenta</p>
       </div>
 
-      <div className="form-group">
-        <label htmlFor="email">Correo electrónico</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          value={formData.email}
-          onChange={handleInputChange}
-          placeholder="correo@ejemplo.com"
-          className={errors.email ? 'error' : ''}
-        />
-        {errors.email && <span className="error-message">{errors.email}</span>}
-      </div>
+      <Input
+        label="Correo electrónico"
+        type="email"
+        id="email"
+        name="email"
+        value={formData.email}
+        onChange={handleInputChange}
+        placeholder="correo@ejemplo.com"
+        error={errors.email}
+      />
 
-      <button type="submit" className="btn-primary">Buscar cuenta</button>
+      <Button type="submit" variant="primary">
+        Buscar cuenta
+      </Button>
 
       <p className="register-prompt">
         ¿Ya tienes acceso?{' '}

@@ -2,11 +2,17 @@ import './css/Home.css'
 
 import { useNavigate } from 'react-router-dom'
 
+import { Button } from '../../design-system/components/Button'
 import { useAuth } from '../../hooks'
 
 function Home() {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
 
   return (
     <div className="home-container">
@@ -14,12 +20,12 @@ function Home() {
         <h1 className="home-title">¡Hola {user?.email}!</h1>
         <p className="home-subtitle">Bienvenido a SaludYa</p>
         <div className="home-actions">
-          <button className="nav-btn" onClick={() => navigate('/calendar')}>
+          <Button variant="secondary" onClick={() => navigate('/calendar')}>
             Ir al Calendario
-          </button>
-          <button className="logout-btn" onClick={logout}>
+          </Button>
+          <Button variant="primary" onClick={handleLogout}>
             Cerrar sesión
-          </button>
+          </Button>
         </div>
       </div>
     </div>
