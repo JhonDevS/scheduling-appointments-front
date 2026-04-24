@@ -1,9 +1,13 @@
 import './Login.css'
 
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import { MOCK_PASSWORD,MOCK_USER } from '../App'
 
 function Login() {
-  const [view, setView] = useState('login') // login, register, forgot-password, recovery
+  const navigate = useNavigate()
+  const [view, setView] = useState('login')
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -56,6 +60,17 @@ function Login() {
 
     if (view === 'login') {
       newErrors = validateLogin()
+      
+      // Validar con mock
+      if (formData.email === MOCK_USER && formData.password === MOCK_PASSWORD) {
+        localStorage.setItem('isAuthenticated', 'true')
+        navigate('/home')
+        return
+      } else if (formData.email && formData.password) {
+        newErrors.password = 'Credenciales inválidas'
+        setErrors(newErrors)
+        return
+      }
     } else if (view === 'register') {
       newErrors = validateRegister()
     } else if (view === 'forgot-password') {
