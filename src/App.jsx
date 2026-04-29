@@ -5,6 +5,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import Calendar from './components/calendar/Calendar'
 import Home from './components/home/Home'
 import Login from './components/login/Login'
+import Register from './components/register/register' 
 import { AuthProvider, useAuth } from './hooks'
 
 // Componente para proteger rutas
@@ -21,6 +22,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} /> 
       <Route
         path="/home"
         element={
