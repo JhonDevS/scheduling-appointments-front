@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom'
 
 import { Button } from '../../design-system/components/Button'
 import { Input } from '../../design-system/components/Input'
+import { useAuth } from '../../hooks'  
 
 function Register() {
   const navigate = useNavigate()  
+  const { register } = useAuth()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -48,7 +50,13 @@ function Register() {
       return
     }
 
-    console.log('Register submitted:', formData)
+      const result = register(formData)
+      console.log('resultado register:', result)
+    if (result.success) {
+      navigate('/home')
+    } else {
+      setErrors({ email: result.error })
+    }
   }
 
   return (

@@ -16,6 +16,7 @@ const getStoredUser = () => {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => getStoredUser())
+  const [users, setUsers] = useState([MOCK_USER])
   const isAuthenticated = user !== null
 
   const login = (email, password) => {
@@ -27,14 +28,25 @@ export function AuthProvider({ children }) {
     }
     return { success: false, error: 'Credenciales inválidas' }
   }
-
+  const register = (userData) => {          
+    const exists = users.find(u => u.email === userData.email)
+    if (exists) {
+      return { success: false, error: 'Este usuario ya se ha registrado' }
+    }
+    const newUser = { email: userData.email, password: userData.password }
+    setUsers([...users, newUser])
+    const userSession = { email: userData.email }
+    sessionStorage.setItem('user', JSON.stringify(userSession))
+    setUser(userSession)
+    return { success: true }
+  }   
   const logout = () => {
     sessionStorage.removeItem('user')
     setUser(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, isLoading: false, login, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, isLoading: false, login, logout, register }}>
       {children}
     </AuthContext.Provider>
   )
