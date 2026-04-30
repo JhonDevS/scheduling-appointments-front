@@ -1,43 +1,70 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
+import { authApi } from '../services/api'
+import { useAuthStore } from '../store/authStore'
 import { AuthContext } from './AuthContext'
 
-// Mock de usuario
-const MOCK_USER = {
-  email: 'admin@saludya.com',
-  password: '123456'
-}
-
-const getStoredUser = () => {
-  if (typeof window === 'undefined') return null
-  const stored = sessionStorage.getItem('user')
-  return stored ? JSON.parse(stored) : null
-}
-
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => getStoredUser())
-  const isAuthenticated = user !== null
+  const [user, setUser] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
+  
+  const token = useAuthStore((state) => state.token)
+  const setToken = useAuthStore((state) => state.setToken)
+  const clearAuth = useAuthStore((state) => state.clearAuth)
 
-  const login = (email, password) => {
-    if (email === MOCK_USER.email && password === MOCK_USER.password) {
-      const userData = { email }
-      sessionStorage.setItem('user', JSON.stringify(userData))
-      setUser(userData)
-      return { success: true }
+  useEffect(() => {
+    let mounted = true
+    
+    const initAuth = async () => {
+      if (token) {
+        try {
+          const userData = await authApi.me()
+          if (mounted) {
+            setUser(userData)
+          }
+        } catch {
+          if (mounted) {
+            clearAuth()
+          }
+        }
+      }
+      if (mounted) {
+        setIsLoading(false)
+      }
     }
-    return { success: false, error: 'Credenciales inválidas' }
+    
+    initAuth()
+    
+    return () => {
+      mounted = false
+    }
+  }, [token, clearAuth, setToken])
+
+  const login = async (email, password) => {
+    try {
+      const result = await authApi.login(email, password)
+      
+      return result
+    } catch (error) {
+      const message = error.response?.data?.error?.message || 'Error al iniciar sesión'
+      return { success: false, error: message }
+    }
   }
 
-  const logout = () => {
-    sessionStorage.removeItem('user')
+  const logout = async () => {
+    try {
+      await authApi.logout()
+    } catch {
+      // Ignorar errores
+    }
     setUser(null)
   }
 
+  const isAuthenticated = !!token
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, isLoading: false, login, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   )
 }
-
-export { MOCK_USER }

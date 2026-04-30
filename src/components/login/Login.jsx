@@ -1,6 +1,6 @@
 import './css/Login.css'
 
-import { useState } from 'react'
+import { useEffect,useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '../../design-system/components/Button'
@@ -9,7 +9,7 @@ import { useAuth } from '../../hooks'
 
 function Login() {
   const navigate = useNavigate()
-  const { login } = useAuth()
+  const { login, isAuthenticated } = useAuth()
   const [view, setView] = useState('login')
   const [formData, setFormData] = useState({
     email: '',
@@ -21,6 +21,12 @@ function Login() {
     role: ''
   })
   const [errors, setErrors] = useState({})
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/home', { replace: true })
+    }
+  }, [isAuthenticated, navigate])
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -57,21 +63,22 @@ function Login() {
     return newErrors
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     let newErrors = {}
 
     if (view === 'login') {
       newErrors = validateLogin()
 
-      const result = login(formData.email, formData.password)
-      if (result.success) {
-        navigate('/home')
-        return
-      } else {
-        newErrors.password = result.error
+      if (Object.keys(newErrors).length > 0) {
         setErrors(newErrors)
         return
+      }
+
+      const result = await login(formData.email, formData.password)
+      if (!result.success) {
+        newErrors.password = result.error
+        setErrors(newErrors)
       }
     } else if (view === 'register') {
       newErrors = validateRegister()
@@ -83,8 +90,6 @@ function Login() {
       setErrors(newErrors)
       return
     }
-
-    console.log('Form submitted:', { view, ...formData })
   }
 
   const renderLoginForm = () => (
@@ -233,7 +238,7 @@ function Login() {
         name="password"
         value={formData.password}
         onChange={handleInputChange}
-        placeholder="•••••���••"
+        placeholder="••••••••"
         error={errors.password}
       />
 
