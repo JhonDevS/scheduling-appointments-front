@@ -79,6 +79,12 @@ export const authApi = {
   register: async (userData) => {
     try {
       const response = await api.post('/auth/register', userData)
+      if (response.data?.token) {
+        return { success: true, data: response.data }
+      }
+      if (response.success !== false) {
+        return { success: true, data: response }
+      }
       return response
     } catch (error) {
       if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED' || !error.response) {

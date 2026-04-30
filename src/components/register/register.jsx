@@ -14,10 +14,11 @@ function Register() {
     confirmPassword: '',
     name: '',
     lastName: '',
-    phone: '',
-    role: ''
+    phone: ''
   })
   const [errors, setErrors] = useState({})
+  const [successMessage, setSuccessMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -37,11 +38,10 @@ function Register() {
     if (formData.password.length < 6) newErrors.password = 'La contraseña debe tener al menos 6 caracteres'
     if (!formData.confirmPassword) newErrors.confirmPassword = 'Debes confirmar tu contraseña'
     if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Las contraseñas no coinciden'
-    if (!formData.role) newErrors.role = 'Debes seleccionar un rol'
     return newErrors
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const newErrors = validateRegister()
 
@@ -50,12 +50,31 @@ function Register() {
       return
     }
 
-      const result = register(formData)
-      console.log('resultado register:', result)
+    setIsLoading(true)
+
+    const result = await register({
+      ...formData,
+      nombreCompleto: `${formData.name} ${formData.lastName}`.trim()
+    })
     if (result.success) {
-      navigate('/home')
+      setSuccessMessage('Usuario registrado exitosamente. Por favor, inicia sesión.')
+      setTimeout(() => navigate('/login'), 2000)
     } else {
-      setErrors({ email: result.error })
+      setIsLoading(false)
+      const errorMsg = result.error
+      if (typeof errorMsg === 'object' && errorMsg !== null) {
+        const fieldErrors = {}
+        for (const [key, value] of Object.entries(errorMsg)) {
+          if (key === 'nombreCompleto') fieldErrors.name = value
+          else if (key === 'correo') fieldErrors.email = value
+          else if (key === 'telefono') fieldErrors.phone = value
+          else if (key === 'password') fieldErrors.password = value
+          else fieldErrors.general = Array.isArray(value) ? value[0] : value
+        }
+        setErrors(fieldErrors)
+      } else {
+        setErrors({ general: errorMsg })
+      }
     }
   }
 
@@ -112,37 +131,6 @@ function Register() {
         error={errors.email}
       />
 
-      <div className="form-group">
-        <label htmlFor="role">Selecciona tu rol</label>
-        <div className="role-selector">
-          <button
-            type="button"
-            className={`role-option ${formData.role === 'administrator' ? 'selected' : ''}`}
-            onClick={() => setFormData({ ...formData, role: 'administrator' })}
-          >
-            <span className="role-icon">👨‍💼</span>
-            <span className="role-label">Administrador</span>
-          </button>
-          <button
-            type="button"
-            className={`role-option ${formData.role === 'medical' ? 'selected' : ''}`}
-            onClick={() => setFormData({ ...formData, role: 'medical' })}
-          >
-            <span className="role-icon">👨‍⚕️</span>
-            <span className="role-label">Médico</span>
-          </button>
-          <button
-            type="button"
-            className={`role-option ${formData.role === 'patient' ? 'selected' : ''}`}
-            onClick={() => setFormData({ ...formData, role: 'patient' })}
-          >
-            <span className="role-icon">🧑‍🤝‍🧑</span>
-            <span className="role-label">Paciente</span>
-          </button>
-        </div>
-        {errors.role && <span className="error-message">{errors.role}</span>}
-      </div>
-
       <Input
         label="Contraseña"
         type="password"
@@ -165,8 +153,16 @@ function Register() {
         error={errors.confirmPassword}
       />
 
-      <Button type="submit" variant="primary">
-        Crear cuenta
+      {errors.general && (
+        <div className="error-banner">{errors.general}</div>
+      )}
+
+      {successMessage && (
+        <div className="success-banner">{successMessage}</div>
+      )}
+
+      <Button type="submit" variant="primary" disabled={isLoading}>
+        {isLoading ? 'Registrando...' : 'Crear cuenta'}
       </Button>
 
       <p className="register-prompt">
