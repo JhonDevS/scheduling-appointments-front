@@ -9,6 +9,7 @@ export function AuthProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true)
   
   const token = useAuthStore((state) => state.token)
+  const [users, setUsers] = useState()
   const setToken = useAuthStore((state) => state.setToken)
   const clearAuth = useAuthStore((state) => state.clearAuth)
 
@@ -50,7 +51,18 @@ export function AuthProvider({ children }) {
       return { success: false, error: message }
     }
   }
-
+  const register = (userData) => {          
+    const exists = users.find(u => u.email === userData.email)
+    if (exists) {
+      return { success: false, error: 'Este usuario ya se ha registrado' }
+    }
+    const newUser = { email: userData.email, password: userData.password }
+    setUsers([...users, newUser])
+    const userSession = { email: userData.email }
+    sessionStorage.setItem('user', JSON.stringify(userSession))
+    setUser(userSession)
+    return { success: true }
+  }   
   const logout = async () => {
     try {
       await authApi.logout()
@@ -63,7 +75,7 @@ export function AuthProvider({ children }) {
   const isAuthenticated = !!token
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, isLoading, login, logout, register }}>
       {children}
     </AuthContext.Provider>
   )
