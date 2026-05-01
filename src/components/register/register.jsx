@@ -1,9 +1,11 @@
+import '../login/css/Login.css'  
+
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '../../design-system/components/Button'
 import { Input } from '../../design-system/components/Input'
-import { useAuth } from '../../hooks'  
+import { useAuth } from '../../hooks'
 
 function Register() {
   const navigate = useNavigate()  
@@ -79,11 +81,18 @@ function Register() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="login-form">
-      <div className="form-header">
-        <h1 className="app-title">Crear cuenta</h1>
-        <p className="app-subtitle">Únete a SaludYa</p>
+    <div className="login-container">
+      <div className="login-background">
+        <div className="bg-shape shape-1"></div>
+        <div className="bg-shape shape-2"></div>
+        <div className="bg-shape shape-3"></div>
       </div>
+      <div className="login-card">
+        <form onSubmit={handleSubmit} className="login-form">
+          <div className="form-header">
+            <h1 className="app-title">Crear cuenta</h1>
+            <p className="app-subtitle">Únete a SaludYa</p>
+          </div>
 
       <div className="form-row">
         <Input
@@ -109,49 +118,53 @@ function Register() {
         />
       </div>
 
-      <Input
-        label="Teléfono"
-        type="tel"
-        id="phone"
-        name="phone"
-        value={formData.phone}
-        onChange={handleInputChange}
-        placeholder="+51 999 999 999"
-        error={errors.phone}
-      />
+      <div className="form-row">
+        <Input
+          label="Teléfono"
+          type="tel"
+          id="phone"
+          name="phone"
+          value={formData.phone}
+          onChange={handleInputChange}
+          placeholder="+51 999 999 999"
+          error={errors.phone}
+        />
 
-      <Input
-        label="Correo electrónico"
-        type="email"
-        id="email"
-        name="email"
-        value={formData.email}
-        onChange={handleInputChange}
-        placeholder="correo@ejemplo.com"
-        error={errors.email}
-      />
+        <Input
+          label="Correo electrónico"
+          type="email"
+          id="email"
+          name="email"
+          value={formData.email}
+          onChange={handleInputChange}
+          placeholder="correo@ejemplo.com"
+          error={errors.email}
+        />
+      </div>
 
-      <Input
-        label="Contraseña"
-        type="password"
-        id="password"
-        name="password"
-        value={formData.password}
-        onChange={handleInputChange}
-        placeholder="••••••••"
-        error={errors.password}
-      />
+      <div className="form-row">
+        <Input
+          label="Contraseña"
+          type="password"
+          id="password"
+          name="password"
+          value={formData.password}
+          onChange={handleInputChange}
+          placeholder="••••••••"
+          error={errors.password}
+        />
 
-      <Input
-        label="Confirmar contraseña"
-        type="password"
-        id="confirmPassword"
-        name="confirmPassword"
-        value={formData.confirmPassword}
-        onChange={handleInputChange}
-        placeholder="••••••••"
-        error={errors.confirmPassword}
-      />
+        <Input
+          label="Confirmar contraseña"
+          type="password"
+          id="confirmPassword"
+          name="confirmPassword"
+          value={formData.confirmPassword}
+          onChange={handleInputChange}
+          placeholder="••••••••"
+          error={errors.confirmPassword}
+        />
+      </div>
 
       {errors.general && (
         <div className="error-banner">{errors.general}</div>
@@ -171,7 +184,9 @@ function Register() {
             Inicia sesión
         </button>
       </p>
-    </form>
+        </form>
+      </div>
+    </div>
   )
 }
 
