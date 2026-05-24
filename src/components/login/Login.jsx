@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '../../design-system/components/Button'
 import { Input } from '../../design-system/components/Input'
 import { useAuth } from '../../hooks'
-import  Register  from '../register/register'
+import  Register  from '../register/Register'
 
 function Login() {
   const navigate = useNavigate()

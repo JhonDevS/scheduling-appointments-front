@@ -1,0 +1,296 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+
+  /* =========================================
+     COLORES PRINCIPALES
+  ========================================= */
+
+--primary: #34d399;
+--primary-dark: #10b981;
+--primary-light: #6ee7b7;
+  /* =========================================
+     FONDOS
+  ========================================= */
+
+---bg-primary: #2d5a4f;
+--bg-secondary: #3f7d6d;
+--bg-tertiary: #67b6a1;
+
+  /* =========================================
+     TEXTO
+  ========================================= */
+
+  --text-primary: #ffffff;
+  --text-secondary: #b6c2cf;
+  --text-muted: #64748b;
+
+  /* =========================================
+     BORDES
+  ========================================= */
+
+  --border: rgba(15, 23, 42, 0.08);
+
+  /* =========================================
+     EFECTO GLASS
+  ========================================= */
+
+  --glass: rgba(255,255,255,0.05);
+
+  /* =========================================
+     SOMBRAS
+  ========================================= */
+
+  --shadow:
+    0 10px 35px rgba(34, 197, 94, 0.08);
+
+  --shadow-hover:
+    0 20px 45px rgba(34, 197, 94, 0.14);
+
+  /* =========================================
+     BORDES REDONDEADOS
+  ========================================= */
+
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+
+  /* =========================================
+     TRANSICIONES
+  ========================================= */
+
+  --transition:
+    all 0.3s ease;
+
+  /* =========================================
+     ESPACIADOS
+  ========================================= */
+
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 18px;
+  --spacing-lg: 24px;
+  --spacing-xl: 40px;
+}
+
+/* =========================================
+   RESET GENERAL
+========================================= */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* =========================================
+   BODY
+========================================= */
+
+body {
+
+  font-family: 'Inter', sans-serif;
+
+  background:
+
+    radial-gradient(
+      circle at top left,
+      rgba(16,185,129,0.10),
+      transparent 25%
+    ),
+
+    radial-gradient(
+      circle at bottom right,
+      rgba(5,150,105,0.10),
+      transparent 25%
+    ),
+
+    linear-gradient(
+      135deg,
+      #0f172a 0%,
+      #67b6a1 50%,
+      #0b1120 100%
+    );
+
+  color: white;
+
+  min-height: 100vh;
+
+  overflow-x: hidden;
+
+  -webkit-font-smoothing: antialiased;
+}
+
+/* =========================================
+   ROOT
+========================================= */
+
+#root {
+  min-height: 100vh;
+}
+
+/* =========================================
+   TIPOGRAFÍA
+========================================= */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--text-primary);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+p {
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* =========================================
+   BOTONES
+========================================= */
+
+button {
+
+  font-family:
+    inherit;
+
+  border:
+    none;
+
+  outline:
+    none;
+
+  cursor:
+    pointer;
+
+  transition:
+    var(--transition);
+}
+
+/* =========================================
+   INPUTS
+========================================= */
+
+input,
+textarea,
+select {
+
+  width:
+    100%;
+
+  background:
+    rgba(255,255,255,0.75);
+
+  border:
+    1px solid rgba(34,197,94,0.08);
+
+  border-radius:
+    16px;
+
+  padding:
+    18px;
+
+  color:
+    var(--text-primary);
+
+  outline:
+    none;
+
+  transition:
+    var(--transition);
+
+  backdrop-filter:
+    blur(14px);
+
+  font-size:
+    1rem;
+
+  box-shadow:
+    0 4px 12px rgba(15,23,42,0.03);
+}
+
+/* =========================================
+   PLACEHOLDERS
+========================================= */
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* =========================================
+   FOCUS INPUTS
+========================================= */
+
+input:focus,
+textarea:focus,
+select:focus {
+
+  border-color:
+    var(--primary);
+
+  background:
+    rgba(255,255,255,0.95);
+
+  box-shadow:
+    0 0 0 4px rgba(34,197,94,0.12),
+    0 12px 30px rgba(34,197,94,0.10);
+}
+
+/* =========================================
+   LINKS
+========================================= */
+
+a {
+  text-decoration: none;
+  color: var(--primary);
+  transition: var(--transition);
+}
+
+a:hover {
+  color: var(--primary-dark);
+}
+
+/* =========================================
+   IMÁGENES
+========================================= */
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* =========================================
+   SCROLLBAR
+========================================= */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #ecfdf3;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(34,197,94,0.35);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(34,197,94,0.55);
+}
+
+/* =========================================
+   SELECCIÓN
+========================================= */
+
+::selection {
+  background: rgba(34,197,94,0.18);
+  color: var(--text-primary);
+}
