@@ -1,0 +1,133 @@
+[
+  {
+    "name": "Dr. Alexander Sterling",
+    "id": "SY-2024-81",
+    "email": "a.sterling@saludya.com",
+    "role": "doctor",
+    "status": "active",
+    "specialty": "Cardiólogo senior"
+  },
+  {
+    "name": "Dra. Valentina Cruz",
+    "id": "SY-2024-82",
+    "email": "v.cruz@saludya.com",
+    "role": "doctor",
+    "status": "active",
+    "specialty": "Dermatólogo senior"
+  },
+  {
+    "name": "Dr. Hugo Morales",
+    "id": "SY-2024-83",
+    "email": "h.morales@saludya.com",
+    "role": "doctor",
+    "status": "active",
+    "specialty": "Neurólogo senior"
+  },
+  {
+    "name": "Dra. Isabel Herrera",
+    "id": "SY-2024-84",
+    "email": "i.herrera@saludya.com",
+    "role": "doctor",
+    "status": "active",
+    "specialty": "Ginecóloga senior"
+  },
+  {
+    "name": "Dr. Mateo Gómez",
+    "id": "SY-2024-85",
+    "email": "m.gomez@saludya.com",
+    "role": "doctor",
+    "status": "active",
+    "specialty": "Ortopedista senior"
+  },
+  {
+    "name": "Dra. Ana Lucía Ríos",
+    "id": "SY-2024-86",
+    "email": "a.rios@saludya.com",
+    "role": "doctor",
+    "status": "active",
+    "specialty": "Pediatra senior"
+  },
+  {
+    "name": "Dr. Javier Salinas",
+    "id": "SY-2024-87",
+    "email": "j.salinas@saludya.com",
+    "role": "doctor",
+    "status": "active",
+    "specialty": "Cardiovascular senior"
+  },
+  {
+    "name": "Dra. Marina Pardo",
+    "id": "SY-2024-88",
+    "email": "m.pardo@saludya.com",
+    "role": "doctor",
+    "status": "active",
+    "specialty": "Endocrinóloga senior"
+  },
+  {
+    "name": "Dr. Esteban Lozano",
+    "id": "SY-2024-89",
+    "email": "e.lozano@saludya.com",
+    "role": "doctor",
+    "status": "active",
+    "specialty": "Oncólogo senior"
+  },
+  {
+    "name": "Dra. Claudia Paredes",
+    "id": "SY-2024-90",
+    "email": "c.paredes@saludya.com",
+    "role": "doctor",
+    "status": "active",
+    "specialty": "Psiquiatra senior"
+  },
+  {
+    "name": "Dr. Samuel Torres",
+    "id": "SY-2024-91",
+    "email": "s.torres@saludya.com",
+    "role": "doctor",
+    "status": "active",
+    "specialty": "Gastroenterólogo senior"
+  },
+  {
+    "name": "Elena Rodríguez",
+    "id": "SY-2024-94",
+    "email": "elena.rod@gmail.com",
+    "role": "patient",
+    "status": "active"
+  },
+  {
+    "name": "Alejandro Vargas",
+    "id": "SY-2024-95",
+    "email": "a.vargas@saludya.com",
+    "role": "patient",
+    "status": "active"
+  },
+  {
+    "name": "María Camacho",
+    "id": "SY-2024-96",
+    "email": "m.camacho@saludya.com",
+    "role": "patient",
+    "status": "active"
+  },
+  {
+    "name": "Julián Ríos",
+    "id": "SY-2024-97",
+    "email": "j.rios@saludya.com",
+    "role": "patient",
+    "status": "active"
+  },
+  {
+    "name": "Marcus Thorne",
+    "id": "SY-2024-03",
+    "email": "m.thorne@saludya.com",
+    "role": "admin",
+    "status": "suspended"
+  },
+  {
+    "name": "Enfermera Sarah Jenkins",
+    "id": "SY-2024-112",
+    "email": "s.jenkins@saludya.com",
+    "role": "doctor",
+    "status": "pending",
+    "specialty": "Médico familiar"
+  }
+]

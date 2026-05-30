@@ -5,7 +5,6 @@ import moment from 'moment'
 import { Calendar as BigCalendar, momentLocalizer } from 'react-big-calendar'
 
 import { getEventColor,useCalendar } from './hook'
-
 const localizer = momentLocalizer(moment)
 
 function Calendar() {

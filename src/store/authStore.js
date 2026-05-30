@@ -6,11 +6,16 @@ export const useAuthStore = create(
     (set) => ({
       token: null,
       user: null,
+      notifyEmail: true,
+      notifySms: false,
 
       setToken: (token) => set({ token }),
       
       setUser: (user) => set({ user }),
       
+      setNotifyEmail: (value) => set({ notifyEmail: value }),
+      setNotifySms: (value) => set({ notifySms: value }),
+
       clearAuth: () => set({ token: null, user: null }),
     }),
     {

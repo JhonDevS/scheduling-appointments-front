@@ -43,7 +43,11 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     try {
       const result = await authApi.login(email, password)
-      
+
+      if (result.success && result.user) {
+        setUser(result.user)
+      }
+
       return result
     } catch (error) {
       const message = error.response?.data?.error?.message || 'Error al iniciar sesión'
@@ -53,22 +57,15 @@ export function AuthProvider({ children }) {
   const register = async (userData) => {
     try {
       const result = await authApi.register(userData)
-      
       if (result.success === true) {
-        const user = result.data || result
-        return { success: true, user, message: result.message }
-      }
-      if (result.isMock) {
-        const mockUser = { email: userData.email, nombreCompleto: `${userData.nombreCompleto}` }
-        setUser(mockUser)
-        return { success: true, user: mockUser, isMock: true }
+        return result
       }
       return { success: false, error: result.error?.message || result.message || 'Error al registrar' }
     } catch (error) {
       const message = error.response?.data?.error?.message || 'Error al registrar usuario'
       return { success: false, error: message }
     }
-  }   
+  }
   const logout = async () => {
     try {
       await authApi.logout()
@@ -78,10 +75,24 @@ export function AuthProvider({ children }) {
     setUser(null)
   }
 
+  const loginWithOAuth = async (payload) => {
+    try {
+      const result = await authApi.loginWithOAuth(payload)
+      if (result.success && result.user) {
+        setUser(result.user)
+      }
+      return result
+    } catch {
+      return { success: false, error: 'Error al iniciar sesión con el proveedor seleccionado' }
+    }
+  }
+
   const isAuthenticated = !!token
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, isLoading, login, logout, register }}>
+    <AuthContext.Provider
+      value={{ user, isAuthenticated, isLoading, login, loginWithOAuth, logout, register }}
+    >
       {children}
     </AuthContext.Provider>
   )

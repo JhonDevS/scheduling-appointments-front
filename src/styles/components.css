@@ -1,0 +1,138 @@
+.glass-card {
+
+  background:
+    rgba(255,255,255,0.04);
+
+  border:
+    1px solid rgba(255,255,255,0.08);
+
+  border-radius:
+    28px;
+
+  backdrop-filter:
+    blur(18px);
+
+  padding:
+    30px;
+
+  box-shadow:
+    0 20px 60px rgba(0,0,0,0.3);
+
+  transition:
+    all 0.35s ease;
+}
+
+.glass-card:hover {
+
+  transform:
+    translateY(-6px);
+
+  box-shadow:
+    0 30px 80px rgba(0,0,0,0.35);
+}
+
+.btn-primary {
+
+  background:
+    linear-gradient(
+      135deg,
+      #2dd4bf,
+      #14b8a6
+    );
+
+  color:
+    white;
+
+  border:
+    none;
+
+  padding:
+    18px 28px;
+
+  border-radius:
+    18px;
+
+  font-weight:
+    700;
+
+  cursor:
+    pointer;
+
+  transition:
+    all 0.3s ease;
+
+  box-shadow:
+    0 15px 35px rgba(45,212,191,0.22);
+}
+
+.btn-primary:hover {
+
+  transform:
+    translateY(-4px);
+
+  box-shadow:
+    0 25px 45px rgba(45,212,191,0.3);
+}
+
+.stat-card {
+
+  background:
+    rgba(255,255,255,0.04);
+
+  border:
+    1px solid rgba(255,255,255,0.08);
+
+  border-radius:
+    28px;
+
+  padding:
+    32px;
+
+  backdrop-filter:
+    blur(18px);
+
+  transition:
+    all 0.35s ease;
+}
+
+.stat-card:hover {
+
+  transform:
+    translateY(-6px);
+}
+
+.form-group {
+  margin-bottom: 22px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.status-badge {
+  background: rgba(79,209,197,0.12);
+  color: var(--primary);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.info-card {
+  background: rgba(255,255,255,0.03);
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 18px;
+}
+
+.summary-row {
+  margin-bottom: 20px;
+}
+
+.summary-row span {
+  display: block;
+  color: var(--text-secondary);
+  margin-bottom: 5px;
+}
