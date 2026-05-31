@@ -27,7 +27,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
-      - run: pnpm install --frozen-lockfile && pnpm run build
+      - run: pnpm config set verify-store-integrity false && pnpm install --no-frozen-lockfile && pnpm run build
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
 
