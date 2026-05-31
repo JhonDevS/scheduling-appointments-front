@@ -27,4 +27,6 @@ function Root() {
   return app
 }
 
+export default Root
+
 createRoot(document.getElementById('root')).render(<Root />)

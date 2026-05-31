@@ -1,9 +1,9 @@
+/* eslint-disable react-hooks/preserve-manual-memoization */
 import { useMemo, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 
 import { useAuth } from '../hooks'
 import { useAppointmentsBookingStore } from '../store/appointmentsBookingStore'
-import { useDoctorAvailabilityStore } from '../store/doctorAvailabilityStore'
 import { useUsersAdminStore } from '../store/usersAdminStore'
 import { getDateInTimeZone, toDateKey } from '../utils/colombianHolidays'
 import { filterBySearch } from '../utils/doctorSchedule'
@@ -11,14 +11,11 @@ import { filterBySearch } from '../utils/doctorSchedule'
 export default function DoctorDashboard() {
   const navigate = useNavigate()
   const { searchQuery = '' } = useOutletContext() ?? {}
-  const addSlot = useDoctorAvailabilityStore((s) => s.addSlot)
   const { user } = useAuth()
   const doctors = useUsersAdminStore((s) => s.users)
 
   const [scheduleView, setScheduleView] = useState('day')
   const [dateTab, setDateTab] = useState('today')
-  const [availability, setAvailability] = useState({ date: '', startTime: '', endTime: '' })
-  const [availabilityMsg, setAvailabilityMsg] = useState('')
   const [showAllPatients, setShowAllPatients] = useState(false)
 
   const bookings = useAppointmentsBookingStore((s) => s.bookings)
@@ -122,11 +119,6 @@ export default function DoctorDashboard() {
 
   const weekRangeLabel = `${today.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })} - ${weekEnd.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })}`
 
-  const handleConfirmSchedule = () => {
-    const result = addSlot(availability)
-    setAvailabilityMsg(result.success ? 'Horario confirmado y guardado.' : result.error)
-  }
-
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 20 }}>
@@ -216,36 +208,18 @@ export default function DoctorDashboard() {
 
         <aside>
           <div className="sy-widget-teal" style={{ marginBottom: 20 }}>
-            <h3 style={{ marginTop: 0 }}>Crear disponibilidad</h3>
-            <label style={{ fontSize: '0.7rem', opacity: 0.9 }}>SELECCIONAR FECHA</label>
-            <input
-              type="date"
-              aria-label="Fecha"
-              value={availability.date}
-              onChange={(e) => setAvailability((a) => ({ ...a, date: e.target.value }))}
-            />
-            <label style={{ fontSize: '0.7rem', opacity: 0.9 }}>HORA DE INICIO</label>
-            <input
-              type="time"
-              aria-label="Hora de inicio"
-              value={availability.startTime}
-              onChange={(e) => setAvailability((a) => ({ ...a, startTime: e.target.value }))}
-            />
-            <label style={{ fontSize: '0.7rem', opacity: 0.9 }}>HORA DE FINALIZACIÓN</label>
-            <input
-              type="time"
-              aria-label="Hora de finalización"
-              value={availability.endTime}
-              onChange={(e) => setAvailability((a) => ({ ...a, endTime: e.target.value }))}
-            />
-            {availabilityMsg && <p style={{ fontSize: '0.85rem', marginTop: 8 }}>{availabilityMsg}</p>}
+            <h3 style={{ marginTop: 0 }}>Disponibilidad</h3>
+            <p style={{ fontSize: '0.85rem', color: 'var(--sy-text-muted)' }}>
+              Tu disponibilidad base es gestionada por el equipo administrador. Si necesitás cambios en tu
+              horario, contactá a soporte o al área administrativa.
+            </p>
             <button
               type="button"
               className="sy-btn sy-btn--white sy-btn--block"
               style={{ marginTop: 8 }}
-              onClick={handleConfirmSchedule}
+              onClick={() => navigate('/doctor/calendar')}
             >
-              Confirmar horario
+              Ver calendario de disponibilidad
             </button>
           </div>
 

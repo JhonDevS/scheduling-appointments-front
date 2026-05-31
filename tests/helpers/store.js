@@ -4,8 +4,8 @@ import { useDoctorAvailabilityStore } from '../../src/store/doctorAvailabilitySt
 import { useNewsletterStore } from '../../src/store/newsletterStore'
 import { usePrescriptionRenewalsStore } from '../../src/store/prescriptionRenewalsStore'
 import { useUsersAdminStore } from '../../src/store/usersAdminStore'
-import { toDateKey } from '../../src/utils/colombianHolidays'
 import { isDateBookable } from '../../src/utils/bookingSchedule'
+import { toDateKey } from '../../src/utils/colombianHolidays'
 
 export function resetAuthStore() {
   useAuthStore.getState().clearAuth()

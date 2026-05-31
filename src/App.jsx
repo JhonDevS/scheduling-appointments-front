@@ -1,17 +1,11 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
-
-
-
 import './styles/saludya.css'
 
-
+import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { AuthProvider, useAuth } from './hooks'
-
+import AdminAvailability from './pages/AdminAvailability'
 import AdminUsers from './pages/AdminUsers'
-
 import BookAppointment from './pages/BookAppointment'
-
 import DoctorAnalytics from './pages/DoctorAnalytics'
 import DoctorAppointments from './pages/DoctorAppointments'
 import DoctorCalendar from './pages/DoctorCalendar'
@@ -20,19 +14,12 @@ import DoctorPortal from './pages/DoctorPortal'
 import DoctorSettings from './pages/DoctorSettings'
 import DoctorUsers from './pages/DoctorUsers'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
-
 import Landing from './pages/Landing'
-
 import LegalPage from './pages/LegalPage'
-
 import LoginPage from './pages/LoginPage'
-
 import MyAppointments from './pages/MyAppointments'
-
 import PatientDashboard from './pages/PatientDashboard'
-
 import ProfilePage from './pages/ProfilePage'
-
 import RegisterPage from './pages/RegisterPage'
 
 
@@ -57,9 +44,9 @@ function PublicRoute({ children }) {
 
 
 
-function ProtectedRoute({ children }) {
+function ProtectedRoute({ children, allowedRoles }) {
 
-  const { isAuthenticated, isLoading } = useAuth()
+  const { isAuthenticated, isLoading, user } = useAuth()
 
 
 
@@ -85,6 +72,24 @@ function ProtectedRoute({ children }) {
 
     return <Navigate to="/login" replace />
 
+  }
+
+
+
+  if (Array.isArray(allowedRoles) && allowedRoles.length > 0) {
+    const roles = (user?.roles && Array.isArray(user.roles) && user.roles.length)
+      ? user.roles
+      : (user?.role ? [user.role] : [])
+
+    const hasRole = roles.some((r) => allowedRoles.includes(r))
+
+    if (!hasRole) {
+      // Redirigir según el rol actual del usuario, o al inicio por defecto
+      if (roles.includes('admin')) return <Navigate to="/admin" replace />
+      if (roles.includes('doctor')) return <Navigate to="/doctor" replace />
+      if (roles.includes('patient')) return <Navigate to="/dashboard" replace />
+      return <Navigate to="/" replace />
+    }
   }
 
 
@@ -189,7 +194,7 @@ function AppRoutes() {
 
         element={
 
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={['patient']}>
 
             <PatientDashboard />
 
@@ -207,7 +212,7 @@ function AppRoutes() {
 
         element={
 
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={['patient']}>
 
             <ProfilePage />
 
@@ -225,7 +230,7 @@ function AppRoutes() {
 
         element={
 
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={['doctor']}>
 
             <DoctorPortal />
 
@@ -257,7 +262,7 @@ function AppRoutes() {
 
         element={
 
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={['admin']}>
 
             <AdminUsers />
 
@@ -265,6 +270,15 @@ function AppRoutes() {
 
         }
 
+      />
+
+      <Route
+        path="/admin/availability"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminAvailability />
+          </ProtectedRoute>
+        }
       />
 
 
@@ -306,4 +320,3 @@ function App() {
 
 
 export default App
-

@@ -1,8 +1,8 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { useAuth } from '../hooks'
+import availabilityService from '../services/availabilityService'
 import { useAppointmentsBookingStore } from '../store/appointmentsBookingStore'
-import { useDoctorAvailabilityStore } from '../store/doctorAvailabilityStore'
 import { useUsersAdminStore } from '../store/usersAdminStore'
 
 function sortByDateTime(a, b) {
@@ -21,7 +21,9 @@ export default function DoctorCalendar() {
   const doctorId = currentDoctor?.id ?? 'SY-2024-81'
 
   const bookings = useAppointmentsBookingStore((s) => s.bookings)
-  const slots = useDoctorAvailabilityStore((s) => s.slots)
+  const [baseSlots, setBaseSlots] = useState([])
+  const [loadingSlots, setLoadingSlots] = useState(false)
+  const [slotsError, setSlotsError] = useState('')
 
   const doctorBookings = useMemo(
     () => bookings.filter((booking) => booking.doctorId === doctorId),
@@ -32,6 +34,33 @@ export default function DoctorCalendar() {
     () => doctorBookings.slice().sort(sortByDateTime),
     [doctorBookings],
   )
+
+  useEffect(() => {
+    let mounted = true
+    if (!doctorId || typeof doctorId !== 'number') return
+
+    const load = async () => {
+      setLoadingSlots(true)
+      setSlotsError('')
+      try {
+        const slots = await availabilityService.getDoctorBaseAvailability(doctorId)
+        if (!mounted) return
+        setBaseSlots(slots)
+      // eslint-disable-next-line no-unused-vars
+      } catch (_error) {
+        if (!mounted) return
+        setSlotsError('No se pudo cargar la disponibilidad del médico.')
+      } finally {
+        if (mounted) setLoadingSlots(false)
+      }
+    }
+
+    load()
+
+    return () => {
+      mounted = false
+    }
+  }, [doctorId])
 
   return (
     <div>
@@ -69,11 +98,16 @@ export default function DoctorCalendar() {
 
       <section>
         <h2 style={{ marginBottom: 12 }}>Bloques de disponibilidad</h2>
-        {slots.length === 0 ? (
-          <p>No hay bloques de disponibilidad. Usa «Confirmar horario» en el panel para agregar uno.</p>
-        ) : (
+        {loadingSlots && <p>Cargando disponibilidad...</p>}
+        {!loadingSlots && slotsError && (
+          <p style={{ color: 'var(--sy-danger)' }}>{slotsError}</p>
+        )}
+        {!loadingSlots && !slotsError && baseSlots.length === 0 && (
+          <p>No hay bloques de disponibilidad configurados para este médico.</p>
+        )}
+        {!loadingSlots && !slotsError && baseSlots.length > 0 && (
           <ul className="sy-table" style={{ listStyle: 'none', padding: 0 }}>
-            {slots.map((slot) => (
+            {baseSlots.map((slot) => (
               <li
                 key={slot.id}
                 style={{
@@ -84,7 +118,7 @@ export default function DoctorCalendar() {
                 }}
               >
                 <span>
-                  <strong>{slot.date}</strong> · {slot.startTime} – {slot.endTime}
+                  <strong>Día {slot.dayOfWeek}</strong> · {slot.startTime} – {slot.endTime}
                 </span>
               </li>
             ))}

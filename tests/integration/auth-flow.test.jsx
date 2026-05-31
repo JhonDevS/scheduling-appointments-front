@@ -2,10 +2,10 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { createAuthApiMock, mockUser } from './mocks/authApi.mock'
-import { renderApp } from '../helpers/test-utils'
-import { resetAuthStore, seedAuthenticatedUser } from '../helpers/store'
 import { useAuthStore } from '../../src/store/authStore'
+import { resetAuthStore, seedAuthenticatedUser } from '../helpers/store'
+import { renderApp } from '../helpers/test-utils'
+import { createAuthApiMock, mockUser } from './mocks/authApi.mock'
 
 vi.mock('../../src/services/api', async (importOriginal) => {
   const actual = await importOriginal()

@@ -1,10 +1,10 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
-import BookAppointment from '../../../src/pages/BookAppointment'
 import { AuthProvider } from '../../../src/hooks'
-import { resetUsersAdminStore, seedAuthenticatedUser } from '../../helpers/store'
+import BookAppointment from '../../../src/pages/BookAppointment'
 import { useUsersAdminStore } from '../../../src/store/usersAdminStore'
+import { resetUsersAdminStore, seedAuthenticatedUser } from '../../helpers/store'
 
 describe('BookAppointment', () => {
   beforeEach(() => {

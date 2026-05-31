@@ -31,6 +31,10 @@ export const endpoints = {
     updateProfile: '/users/profile',
   },
   
+  availability: {
+    getDoctorBase: (doctorId) => `/doctors/${doctorId}/availability/base`,
+  },
+  
   auth: {
     login: '/auth/login',
     
@@ -39,6 +43,13 @@ export const endpoints = {
     logout: '/auth/logout',
     
     refresh: '/auth/refresh',
+  },
+  
+  admin: {
+    listUsers: '/admin/users',
+    createUser: '/admin/users',
+    updateUser: (id) => `/admin/users/${id}`,
+    deleteUser: (id) => `/admin/users/${id}`,
   },
 }
 

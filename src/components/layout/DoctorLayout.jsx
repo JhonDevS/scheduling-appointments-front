@@ -43,14 +43,18 @@ export default function DoctorLayout({
   }, [user, users])
 
   const displayRole = useMemo(() => {
-    const role = (resolvedUser?.role || '').toString().trim().toLowerCase()
-    if (role === 'doctor') {
+    const roles = resolvedUser?.roles || []
+    const primary = Array.isArray(roles) && roles.length > 0
+      ? String(roles[0] || '').trim().toLowerCase()
+      : String(resolvedUser?.role || '').trim().toLowerCase()
+
+    if (primary === 'doctor') {
       return resolvedUser?.specialty || 'Doctor'
     }
-    if (role === 'admin') {
+    if (primary === 'admin') {
       return 'Administrador'
     }
-    if (role === 'patient') {
+    if (primary === 'patient') {
       return 'Paciente'
     }
     return 'Usuario'

@@ -1,64 +1,49 @@
-import { mockApi } from '../mocks'
-
-const USE_MOCK = true
+import api from './api'
+import { endpoints } from './endpoints'
 
 export const appointmentsService = {
 
   async getAllAppointments() {
-    if (USE_MOCK) {
-      return await mockApi.getAppointments()
-    }
-    
-    
-    console.warn('Real API not configured, using mock data')
-    return await mockApi.getAppointments()
+    const response = await api.get(endpoints.appointments.getAll)
+    // backend devuelve { success, message, data }; interceptor deja data
+    if (Array.isArray(response.data)) return response.data
+    if (Array.isArray(response)) return response
+    return []
   },
 
   async getAppointmentsByDateRange(start, end) {
-    if (USE_MOCK) {
-      return await mockApi.getAppointments(start, end)
-    }
-    
-    console.warn('Real API not configured, using mock data')
-    return await mockApi.getAppointments(start, end)
+    const url = endpoints.appointments.getByDateRange(start, end)
+    const response = await api.get(url)
+    if (Array.isArray(response.data)) return response.data
+    if (Array.isArray(response)) return response
+    return []
   },
 
   async getAppointmentById(id) {
-    if (USE_MOCK) {
-      return await mockApi.getAppointmentById(id)
-    }
-    
-    
-    console.warn('Real API not configured, using mock data')
-    return await mockApi.getAppointmentById(id)
+    const url = endpoints.appointments.getById(id)
+    const response = await api.get(url)
+    return response.data ?? response
   },
 
   async createAppointment(appointmentData) {
-    if (USE_MOCK) {
-      return await mockApi.createAppointment(appointmentData)
+    const payload = {
+      ...appointmentData,
     }
-    
-    console.warn('Real API not configured, using mock data')
-    return await mockApi.createAppointment(appointmentData)
+    const response = await api.post(endpoints.appointments.create, payload)
+    return response.data ?? response
   },
 
   async updateAppointment(id, appointmentData) {
-    if (USE_MOCK) {
-      return await mockApi.updateAppointment(id, appointmentData)
-    }
-    
-    console.warn('Real API not configured, using mock data')
-    return await mockApi.updateAppointment(id, appointmentData)
+    const url = endpoints.appointments.update(id)
+    const response = await api.put(url, appointmentData)
+    return response.data ?? response
   },
 
 
   async deleteAppointment(id) {
-    if (USE_MOCK) {
-      return await mockApi.deleteAppointment(id)
-    }
-
-    console.warn('Real API not configured, using mock data')
-    return await mockApi.deleteAppointment(id)
+    const url = endpoints.appointments.delete(id)
+    const response = await api.delete(url)
+    return response.data ?? response
   },
 }
 

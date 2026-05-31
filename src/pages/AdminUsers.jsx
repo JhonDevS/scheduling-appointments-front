@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import DoctorLayout from '../components/layout/DoctorLayout'
+import adminUsersService from '../services/adminUsersService'
+import availabilityService from '../services/availabilityService'
 import { useUsersAdminStore } from '../store/usersAdminStore'
 import { ADMIN_PAGE_SIZE, filterUsers, paginateUsers } from '../utils/adminUsers'
 
@@ -9,6 +11,7 @@ const STATUS_LABEL = { active: 'Activo', suspended: 'Suspendido', pending: 'Pend
 
 const ADMIN_MENU = [
   { to: '/admin', label: 'Gestión de usuarios', end: true },
+  { to: '/admin/availability', label: 'Disponibilidad de médicos', end: true },
 ]
 
 const EMPTY_FORM = {
@@ -29,6 +32,7 @@ export default function AdminUsers() {
   const addUser = useUsersAdminStore((s) => s.addUser)
   const updateUser = useUsersAdminStore((s) => s.updateUser)
   const removeUser = useUsersAdminStore((s) => s.removeUser)
+  const setUsers = useUsersAdminStore((s) => s.setUsers)
 
   const [roleFilter, setRoleFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('')
@@ -37,6 +41,35 @@ export default function AdminUsers() {
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState(EMPTY_FORM)
   const [formError, setFormError] = useState('')
+  const [availabilityDoctorId, setAvailabilityDoctorId] = useState(null)
+  const [availabilitySlots, setAvailabilitySlots] = useState([])
+  const [availabilityLoading, setAvailabilityLoading] = useState(false)
+  const [availabilityError, setAvailabilityError] = useState('')
+  const [availabilityForm, setAvailabilityForm] = useState({ dayOfWeek: 1, startTime: '09:00:00', endTime: '17:00:00', durationMinutes: 30 })
+
+  useEffect(() => {
+    let mounted = true
+
+    const load = async () => {
+      try {
+        const result = await adminUsersService.list()
+        if (!mounted) return
+        if (Array.isArray(result)) {
+          setUsers(result)
+        } else {
+          setUsers([])
+        }
+      } catch (error) {
+        console.error('No se pudieron cargar los usuarios del backend', error)
+      }
+    }
+
+    load()
+
+    return () => {
+      mounted = false
+    }
+  }, [setUsers])
 
   const filtered = useMemo(
     () => filterUsers(users, { roleFilter, statusFilter }),
@@ -70,7 +103,7 @@ export default function AdminUsers() {
     setModalOpen(true)
   }
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault()
     if (!form.name.trim() || !form.email.trim()) {
       setFormError('Nombre y correo son obligatorios.')
@@ -99,23 +132,64 @@ export default function AdminUsers() {
       return
     }
 
-    if (editingId) {
-      const patch = { ...form }
-      delete patch.password
-      delete patch.confirmPassword
-      updateUser(editingId, patch)
-    } else {
-      const payload = { ...form }
-      delete payload.confirmPassword
-      addUser(payload)
+    try {
+      if (editingId) {
+        const patch = { ...form }
+        delete patch.password
+        delete patch.confirmPassword
+        const updated = await adminUsersService.update(editingId, patch)
+        updateUser(editingId, updated)
+      } else {
+        const payload = { ...form }
+        delete payload.confirmPassword
+        const created = await adminUsersService.create(payload)
+        addUser(created)
+      }
+      setModalOpen(false)
+      setPage(1)
+    } catch (error) {
+      const message = error.response?.data?.error?.message || 'Error al guardar el usuario.'
+      setFormError(message)
     }
-    setModalOpen(false)
-    setPage(1)
   }
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('¿Eliminar este usuario?')) {
-      removeUser(id)
+      try {
+        await adminUsersService.remove(id)
+        removeUser(id)
+      } catch (error) {
+        console.error(error)
+      }
+    }
+  }
+
+  const openAvailability = async (doctor) => {
+    setAvailabilityDoctorId(doctor.id)
+    setAvailabilitySlots([])
+    setAvailabilityError('')
+    setAvailabilityLoading(true)
+    try {
+      const slots = await availabilityService.getDoctorBaseAvailability(doctor.id)
+      setAvailabilitySlots(slots)
+    } catch (error) {
+      console.error(error)
+      setAvailabilityError('No se pudo cargar la disponibilidad de este médico.')
+    } finally {
+      setAvailabilityLoading(false)
+    }
+  }
+
+  const handleAddAvailabilitySlot = async (event) => {
+    event.preventDefault()
+    if (!availabilityDoctorId) return
+    try {
+      const created = await availabilityService.addDoctorBaseSlot(availabilityDoctorId, availabilityForm)
+      setAvailabilitySlots((prev) => [...prev, created])
+      setAvailabilityForm({ ...availabilityForm })
+    } catch (error) {
+      console.error(error)
+      setAvailabilityError('No se pudo agregar el bloque de disponibilidad.')
     }
   }
 
@@ -252,6 +326,16 @@ export default function AdminUsers() {
                   <button type="button" aria-label={`Eliminar ${u.name}`} onClick={() => handleDelete(u.id)}>
                     🗑️
                   </button>
+                  {u.role === 'doctor' && (
+                    <button
+                      type="button"
+                      aria-label={`Gestionar disponibilidad de ${u.name}`}
+                      onClick={() => openAvailability(u)}
+                      style={{ marginLeft: 8 }}
+                    >
+                      📅
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
@@ -411,6 +495,137 @@ export default function AdminUsers() {
                 </button>
               </footer>
             </form>
+          </div>
+        </div>
+      )}
+
+      {availabilityDoctorId && (
+        <div className="sy-modal" role="dialog" aria-modal="true">
+          <button
+            type="button"
+            className="sy-modal__backdrop"
+            aria-label="Cerrar"
+            onClick={() => {
+              setAvailabilityDoctorId(null)
+              setAvailabilitySlots([])
+              setAvailabilityError('')
+            }}
+          />
+          <div className="sy-modal__panel" style={{ maxWidth: 520 }}>
+            <header className="sy-modal__header">
+              <h2>Disponibilidad del médico</h2>
+              <button
+                type="button"
+                className="sy-modal__close"
+                onClick={() => {
+                  setAvailabilityDoctorId(null)
+                  setAvailabilitySlots([])
+                  setAvailabilityError('')
+                }}
+                aria-label="Cerrar"
+              >
+                ×
+              </button>
+            </header>
+            <div className="sy-modal__body" style={{ display: 'grid', gap: 16 }}>
+              <div>
+                <h3 style={{ marginBottom: 8 }}>Bloques actuales</h3>
+                {availabilityLoading && <p>Cargando disponibilidad...</p>}
+                {!availabilityLoading && availabilityError && (
+                  <p style={{ color: 'var(--sy-danger)' }}>{availabilityError}</p>
+                )}
+                {!availabilityLoading && !availabilityError && availabilitySlots.length === 0 && (
+                  <p style={{ color: 'var(--sy-text-muted)' }}>No hay bloques configurados para este médico.</p>
+                )}
+                {!availabilityLoading && !availabilityError && availabilitySlots.length > 0 && (
+                  <ul className="sy-table" style={{ listStyle: 'none', padding: 0 }}>
+                    {availabilitySlots.map((slot) => (
+                      <li
+                        key={slot.id}
+                        style={{
+                          padding: 10,
+                          borderBottom: '1px solid var(--sy-border)',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <span>
+                          <strong>Día {slot.dayOfWeek}</strong> · {slot.startTime} – {slot.endTime}
+                        </span>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--sy-text-muted)' }}>
+                          Duración: {slot.durationMinutes} min
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <form onSubmit={handleAddAvailabilitySlot} style={{ borderTop: '1px solid var(--sy-border)', paddingTop: 12 }}>
+                <h3 style={{ marginBottom: 8 }}>Agregar bloque de disponibilidad</h3>
+                <div className="sy-field">
+                  <label htmlFor="avail-day">Día de la semana</label>
+                  <select
+                    id="avail-day"
+                    value={availabilityForm.dayOfWeek}
+                    onChange={(e) => setAvailabilityForm({ ...availabilityForm, dayOfWeek: Number(e.target.value) })}
+                  >
+                    <option value={1}>Lunes</option>
+                    <option value={2}>Martes</option>
+                    <option value={3}>Miércoles</option>
+                    <option value={4}>Jueves</option>
+                    <option value={5}>Viernes</option>
+                    <option value={6}>Sábado</option>
+                    <option value={7}>Domingo</option>
+                  </select>
+                </div>
+                <div className="sy-field">
+                  <label htmlFor="avail-start">Hora inicio</label>
+                  <input
+                    id="avail-start"
+                    type="time"
+                    value={availabilityForm.startTime}
+                    onChange={(e) => setAvailabilityForm({ ...availabilityForm, startTime: e.target.value })}
+                  />
+                </div>
+                <div className="sy-field">
+                  <label htmlFor="avail-end">Hora fin</label>
+                  <input
+                    id="avail-end"
+                    type="time"
+                    value={availabilityForm.endTime}
+                    onChange={(e) => setAvailabilityForm({ ...availabilityForm, endTime: e.target.value })}
+                  />
+                </div>
+                <div className="sy-field">
+                  <label htmlFor="avail-duration">Duración (minutos)</label>
+                  <input
+                    id="avail-duration"
+                    type="number"
+                    min={5}
+                    step={5}
+                    value={availabilityForm.durationMinutes}
+                    onChange={(e) => setAvailabilityForm({ ...availabilityForm, durationMinutes: Number(e.target.value) })}
+                  />
+                </div>
+                <footer className="sy-modal__footer" style={{ display: 'flex', gap: 8 }}>
+                  <button type="submit" className="sy-btn sy-btn--primary">
+                    Guardar bloque
+                  </button>
+                  <button
+                    type="button"
+                    className="sy-btn sy-btn--outline"
+                    onClick={() => {
+                      setAvailabilityDoctorId(null)
+                      setAvailabilitySlots([])
+                      setAvailabilityError('')
+                    }}
+                  >
+                    Cerrar
+                  </button>
+                </footer>
+              </form>
+            </div>
           </div>
         </div>
       )}

@@ -1,9 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { createAuthApiMock } from './mocks/authApi.mock'
-import { renderApp } from '../helpers/test-utils'
 import { resetAuthStore } from '../helpers/store'
+import { renderApp } from '../helpers/test-utils'
+import { createAuthApiMock } from './mocks/authApi.mock'
 
 vi.mock('../../src/services/api', async (importOriginal) => {
   const actual = await importOriginal()

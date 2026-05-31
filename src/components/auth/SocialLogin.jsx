@@ -85,7 +85,12 @@ export default function SocialLogin({ role = 'patient' }) {
     setLoading(false)
     if (result.success) {
       setFallbackProvider(null)
-      navigate(ROLE_HOME[role] || '/dashboard')
+
+      const roles = result.user?.roles || []
+      const primary = Array.isArray(roles) && roles.length > 0 ? roles[0] : result.user?.role || role
+      const normalized = String(primary).trim().toLowerCase()
+
+      navigate(ROLE_HOME[normalized] || '/dashboard')
     } else {
       setError(result.error || 'No se pudo iniciar sesión')
     }

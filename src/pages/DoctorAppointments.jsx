@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 import { useAuth } from '../hooks'
 import { useAppointmentsBookingStore } from '../store/appointmentsBookingStore'
 import { useUsersAdminStore } from '../store/usersAdminStore'
-import { parseDateKey, getTodayKey } from '../utils/colombianHolidays'
+import { getTodayKey,parseDateKey } from '../utils/colombianHolidays'
 
 const STATUS_LABEL = {
   confirmed: { text: 'Confirmada', className: 'sy-status-dot--ok' },

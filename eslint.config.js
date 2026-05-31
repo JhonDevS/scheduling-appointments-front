@@ -6,7 +6,7 @@ import simpleImportSort from 'eslint-plugin-simple-import-sort'
 import globals from 'globals'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+	globalIgnores(['dist', 'coverage', 'tests']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [
@@ -27,13 +27,29 @@ export default defineConfig([
       'simple-import-sort': simpleImportSort,
     },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^[A-Z_]' }],
       quotes: ['error', 'single', { avoidEscape: true }],
       semi: ['error', 'never'],
       'no-var': 'error',
       'prefer-const': 'error',
       'simple-import-sort/imports': 'error',
       'simple-import-sort/exports': 'error',
+    },
+  },
+  {
+    files: ['tests/**/*.test.{js,jsx}'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      globals: {
+        ...globals.browser,
+        describe: 'readonly',
+        it: 'readonly',
+        test: 'readonly',
+        expect: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        vi: 'readonly',
+      },
     },
   },
 ])

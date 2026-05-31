@@ -2,10 +2,10 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { createAuthApiMock } from './mocks/authApi.mock'
-import { renderApp } from '../helpers/test-utils'
-import { resetDoctorAvailabilityStore, seedAuthenticatedUser } from '../helpers/store'
 import { useDoctorAvailabilityStore } from '../../src/store/doctorAvailabilityStore'
+import { resetDoctorAvailabilityStore, seedAuthenticatedUser } from '../helpers/store'
+import { renderApp } from '../helpers/test-utils'
+import { createAuthApiMock } from './mocks/authApi.mock'
 
 vi.mock('../../src/services/api', async (importOriginal) => {
   const actual = await importOriginal()
