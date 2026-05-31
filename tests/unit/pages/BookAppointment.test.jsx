@@ -1,19 +1,28 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AuthProvider } from '../../../src/hooks'
+import mockUsers from '../../../src/mocks/data/users.json'
 import BookAppointment from '../../../src/pages/BookAppointment'
-import { useUsersAdminStore } from '../../../src/store/usersAdminStore'
+import adminUsersService from '../../../src/services/adminUsersService'
 import { resetUsersAdminStore, seedAuthenticatedUser } from '../../helpers/store'
+
+vi.mock('../../../src/services/adminUsersService', () => ({
+  default: {
+    list: vi.fn(),
+  },
+}))
 
 describe('BookAppointment', () => {
   beforeEach(() => {
     resetUsersAdminStore()
     seedAuthenticatedUser()
+    vi.mocked(adminUsersService.list).mockResolvedValue(mockUsers)
   })
 
-  it('muestra el doctor seleccionado al reprogramar aunque no esté en los primeros 6', () => {
-    const doctors = useUsersAdminStore.getState().users.filter((u) => u.role === 'doctor')
+  it('muestra el doctor seleccionado al reprogramar aunque no esté en los primeros 6', async () => {
+    const doctors = mockUsers.filter((u) => u.role === 'doctor')
     const selectedDoctor = doctors[6]
 
     const { container } = render(
@@ -38,8 +47,11 @@ describe('BookAppointment', () => {
       </AuthProvider>,
     )
 
+    await waitFor(() => {
+      expect(container.querySelectorAll('.sy-doctor-card').length).toBeGreaterThan(6)
+    })
+
     const doctorCards = container.querySelectorAll('.sy-doctor-card')
-    expect(doctorCards.length).toBeGreaterThan(6)
     expect(
       Array.from(doctorCards).some((card) => card.textContent.includes(selectedDoctor.name)),
     ).toBe(true)

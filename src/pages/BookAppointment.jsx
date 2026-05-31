@@ -1,7 +1,7 @@
 import 'react-calendar/dist/Calendar.css'
 
 import { es } from 'date-fns/locale'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Calendar from 'react-calendar'
 import { useLocation, useNavigate } from 'react-router-dom'
 
@@ -9,6 +9,7 @@ import TimeSlotGroup from '../components/booking/TimeSlotGroup'
 import AppFooter from '../components/layout/AppFooter'
 import AppNavbar from '../components/layout/AppNavbar'
 import { useAuth } from '../hooks'
+import adminUsersService from '../services/adminUsersService'
 import { isSlotInPast, useAppointmentsBookingStore } from '../store/appointmentsBookingStore'
 import { useUsersAdminStore } from '../store/usersAdminStore'
 import { formatDateLabel, getDisabledReason, getScheduleForDate, isDateBookable } from '../utils/bookingSchedule'
@@ -38,10 +39,47 @@ export default function BookAppointment() {
   const addBooking = useAppointmentsBookingStore((s) => s.addBooking)
   const removeBooking = useAppointmentsBookingStore((s) => s.removeBooking)
   const users = useUsersAdminStore((s) => s.users)
+  const setUsers = useUsersAdminStore((s) => s.setUsers)
+  const [loadingDoctors, setLoadingDoctors] = useState(true)
+  const [loadDoctorsError, setLoadDoctorsError] = useState('')
+
+  useEffect(() => {
+    let mounted = true
+
+    const load = async () => {
+      setLoadingDoctors(true)
+      setLoadDoctorsError('')
+      try {
+        const result = await adminUsersService.list()
+        if (!mounted) return
+        if (Array.isArray(result)) {
+          setUsers(result)
+        } else if (Array.isArray(result?.data)) {
+          setUsers(result.data)
+        } else {
+          setUsers([])
+        }
+      } catch (error) {
+        console.error('No se pudieron cargar los especialistas', error)
+        if (mounted) {
+          setLoadDoctorsError('No se pudieron cargar los especialistas. Intente de nuevo más tarde.')
+        }
+      } finally {
+        if (mounted) setLoadingDoctors(false)
+      }
+    }
+
+    load()
+
+    return () => {
+      mounted = false
+    }
+  }, [setUsers])
+
   const doctors = useMemo(
     () =>
       users
-        .filter((u) => u.role === 'doctor')
+        .filter((u) => (u.role || '').toLowerCase() === 'doctor')
         .sort((a, b) => {
           const order = { active: 0, pending: 1, suspended: 2 }
           return (order[a.status] ?? 3) - (order[b.status] ?? 3)
@@ -66,33 +104,40 @@ export default function BookAppointment() {
   }
 
   const initialSelectedDate = getInitialSelectedDate()
-  const getInitialDoctorId = () => {
-    const doctorId = rescheduleAppointment?.doctorId
-    if (doctorId != null) return String(doctorId)
-    return doctors[0]?.id ?? ''
-  }
 
-  const [selectedDoctor, setSelectedDoctor] = useState(getInitialDoctorId)
+  const [selectedDoctorId, setSelectedDoctorId] = useState(() =>
+    rescheduleAppointment?.doctorId != null ? String(rescheduleAppointment.doctorId) : null,
+  )
   const [selectedDate, setSelectedDate] = useState(initialSelectedDate)
-  const [selectedTime, setSelectedTime] = useState(() => {
-    if (rescheduleAppointment?.time) return rescheduleAppointment.time
-    const initialDoctorId = getInitialDoctorId()
-    return initialDoctorId
-      ? firstAvailableSlot(initialDoctorId, initialSelectedDate, getScheduleForDate(initialSelectedDate), isSlotBooked)
-      : null
-  })
+  const [selectedTime, setSelectedTime] = useState(() => rescheduleAppointment?.time ?? null)
   const [showAllDoctors, setShowAllDoctors] = useState(false)
   const [confirmError, setConfirmError] = useState('')
   const [confirmSuccess, setConfirmSuccess] = useState('')
   const schedule = useMemo(() => getScheduleForDate(selectedDate), [selectedDate])
-  const doctor = doctors.find((d) => d.id === selectedDoctor)
+
+  const resolvedDoctorId = useMemo(() => {
+    if (!doctors.length) return ''
+    if (selectedDoctorId && doctors.some((d) => String(d.id) === String(selectedDoctorId))) {
+      return String(selectedDoctorId)
+    }
+    const firstActive = doctors.find((d) => d.status === 'active') ?? doctors[0]
+    return firstActive ? String(firstActive.id) : ''
+  }, [doctors, selectedDoctorId])
+
+  const resolvedTime = useMemo(() => {
+    if (selectedTime != null) return selectedTime
+    if (!resolvedDoctorId) return null
+    return firstAvailableSlot(resolvedDoctorId, selectedDate, schedule, isSlotBooked)
+  }, [selectedTime, resolvedDoctorId, selectedDate, schedule, isSlotBooked])
+
+  const doctor = doctors.find((d) => String(d.id) === String(resolvedDoctorId))
   const dateKey = toDateKey(selectedDate)
 
   const isSlotDisabled = (time) =>
-    isSlotBooked(selectedDoctor, dateKey, time) || isSlotInPast(selectedDate, time)
+    isSlotBooked(resolvedDoctorId, dateKey, time) || isSlotInPast(selectedDate, time)
 
   const handleDoctorChange = (id) => {
-    setSelectedDoctor(id)
+    setSelectedDoctorId(String(id))
     const available = firstAvailableSlot(id, selectedDate, schedule, isSlotBooked)
     setSelectedTime(available)
     setConfirmError('')
@@ -104,7 +149,7 @@ export default function BookAppointment() {
     if (!date || !isDateBookable(date)) return
     setSelectedDate(date)
     const updatedSchedule = getScheduleForDate(date)
-    const available = firstAvailableSlot(selectedDoctor, date, updatedSchedule, isSlotBooked)
+    const available = firstAvailableSlot(resolvedDoctorId, date, updatedSchedule, isSlotBooked)
     setSelectedTime(available)
     setConfirmError('')
     setConfirmSuccess('')
@@ -114,14 +159,14 @@ export default function BookAppointment() {
     if (showAllDoctors) return doctors
 
     const visibleDoctors = doctors.slice(0, 4)
-    if (!selectedDoctor) return visibleDoctors
+    if (!resolvedDoctorId) return visibleDoctors
 
-    const selectedDoctorInView = visibleDoctors.some((doc) => String(doc.id) === String(selectedDoctor))
+    const selectedDoctorInView = visibleDoctors.some((doc) => String(doc.id) === String(resolvedDoctorId))
     if (selectedDoctorInView) return visibleDoctors
 
-    const selectedDoctorEntry = doctors.find((doc) => String(doc.id) === String(selectedDoctor))
+    const selectedDoctorEntry = doctors.find((doc) => String(doc.id) === String(resolvedDoctorId))
     return selectedDoctorEntry ? [...visibleDoctors, selectedDoctorEntry] : visibleDoctors
-  }, [doctors, selectedDoctor, showAllDoctors])
+  }, [doctors, resolvedDoctorId, showAllDoctors])
 
   const hasMoreDoctors = doctors.length > doctorsToShow.length
 
@@ -146,7 +191,7 @@ export default function BookAppointment() {
     setConfirmError('')
     setConfirmSuccess('')
 
-    if (!selectedTime) {
+    if (!resolvedTime) {
       setConfirmError('Seleccione un horario disponible.')
       return
     }
@@ -156,16 +201,16 @@ export default function BookAppointment() {
       return
     }
 
-    if (isSlotDisabled(selectedTime)) {
+    if (isSlotDisabled(resolvedTime)) {
       setConfirmError('Este horario no está disponible. Elija otra franja.')
       return
     }
 
     const isSameSlotAsOriginal =
       rescheduleAppointment?.id &&
-      String(rescheduleAppointment.doctorId) === String(selectedDoctor) &&
+      String(rescheduleAppointment.doctorId) === String(resolvedDoctorId) &&
       rescheduleAppointment.dateKey === dateKey &&
-      rescheduleAppointment.time === selectedTime
+      rescheduleAppointment.time === resolvedTime
 
     if (isSameSlotAsOriginal) {
       setConfirmSuccess('¡Cita reprogramada! La cita permanece en el mismo horario.')
@@ -174,9 +219,9 @@ export default function BookAppointment() {
     }
 
     const result = addBooking({
-      doctorId: selectedDoctor,
+      doctorId: resolvedDoctorId,
       dateKey,
-      time: selectedTime,
+      time: resolvedTime,
       patientName: user?.nombreCompleto || 'Paciente',
       patientEmail: user?.email || '',
     })
@@ -196,7 +241,7 @@ export default function BookAppointment() {
     navigate('/dashboard')
   }
 
-  const checkSlotBooked = (time) => isSlotBooked(selectedDoctor, dateKey, time)
+  const checkSlotBooked = (time) => isSlotBooked(resolvedDoctorId, dateKey, time)
   const checkSlotPast = (time) => isSlotInPast(selectedDate, time)
 
   return (
@@ -240,7 +285,13 @@ export default function BookAppointment() {
                   : 'Se muestran todos los especialistas registrados. Los médicos inactivos aparecen deshabilitados y los pendientes pueden ser aprobados por el administrador.'}
               </p>
               <div className="sy-doctor-list">
-                {doctors.length === 0 ? (
+                {loadingDoctors ? (
+                  <p style={{ padding: 20, color: 'var(--sy-text-muted)' }}>
+                    Cargando especialistas...
+                  </p>
+                ) : loadDoctorsError ? (
+                  <p style={{ padding: 20, color: 'var(--sy-danger)' }}>{loadDoctorsError}</p>
+                ) : doctors.length === 0 ? (
                   <p style={{ padding: 20, color: 'var(--sy-text-muted)' }}>
                     No hay profesionales habilitados para agendar citas. Pide a un administrador que active algún doctor.
                   </p>
@@ -249,7 +300,7 @@ export default function BookAppointment() {
                     <button
                       key={doc.id}
                       type="button"
-                      className={`sy-doctor-card ${selectedDoctor === doc.id ? 'is-selected' : ''}`}
+                      className={`sy-doctor-card ${String(resolvedDoctorId) === String(doc.id) ? 'is-selected' : ''}`}
                       onClick={() => handleDoctorChange(doc.id)}
                       disabled={doc.status !== 'active'}
                     >
@@ -316,7 +367,7 @@ export default function BookAppointment() {
               <TimeSlotGroup
                 title="MAÑANA (8:00 a. m. – 12:00 m.)"
                 times={schedule.morning}
-                selectedTime={selectedTime}
+                selectedTime={resolvedTime}
                 isSlotBooked={checkSlotBooked}
                 isSlotPast={checkSlotPast}
                 onSelectTime={setSelectedTime}
@@ -325,7 +376,7 @@ export default function BookAppointment() {
               <TimeSlotGroup
                 title="TARDE (1:00 p. m. – 5:00 p. m.)"
                 times={schedule.afternoon}
-                selectedTime={selectedTime}
+                selectedTime={resolvedTime}
                 isSlotBooked={checkSlotBooked}
                 isSlotPast={checkSlotPast}
                 onSelectTime={setSelectedTime}
@@ -343,7 +394,7 @@ export default function BookAppointment() {
               <div className="sy-summary-box">
                 <p>
                   {formatDateLabel(selectedDate)}
-                  {selectedTime ? ` • ${selectedTime}` : ' • Sin hora'}
+                  {resolvedTime ? ` • ${resolvedTime}` : ' • Sin hora'}
                 </p>
                 <strong>{doctor?.name || 'Profesional no seleccionado'}</strong>
                 {doctor?.specialty && <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--sy-text-muted)' }}>{doctor.specialty}</p>}
@@ -360,7 +411,7 @@ export default function BookAppointment() {
                 type="button"
                 className="sy-btn sy-btn--primary sy-btn--block sy-btn--lg"
                 onClick={handleConfirm}
-                disabled={!selectedTime || isSlotDisabled(selectedTime)}
+                disabled={!resolvedTime || isSlotDisabled(resolvedTime)}
               >
                 Confirmar cita
               </button>
