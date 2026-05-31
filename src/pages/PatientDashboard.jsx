@@ -8,7 +8,7 @@ import { useAppointmentsBookingStore } from '../store/appointmentsBookingStore'
 import { usePrescriptionRenewalsStore } from '../store/prescriptionRenewalsStore'
 import { useUsersAdminStore } from '../store/usersAdminStore'
 import { parseTime12h } from '../utils/bookingSchedule'
-import { parseDateKey, getTodayKey } from '../utils/colombianHolidays'
+import { getTodayKey,parseDateKey } from '../utils/colombianHolidays'
 import { downloadTextFile } from '../utils/downloadFile'
 
 const PRESCRIPTIONS = [
@@ -75,7 +75,7 @@ export default function PatientDashboard() {
       patientAppointments.filter(
         (booking) => getBookingStatus(booking) === 'confirmed' && booking.dateKey >= todayKey,
       ),
-    [patientAppointments, todayKey],
+    [patientAppointments, todayKey, getBookingStatus],
   )
   const nextAppointment = upcomingAppointments[0]
   const nextAppointments = upcomingAppointments.slice(0, 3)

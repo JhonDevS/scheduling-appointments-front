@@ -73,6 +73,13 @@ export function AuthProvider({ children }) {
       // Ignorar errores
     }
     setUser(null)
+    // Limpiar stores persistidos relacionados cuando se cierra sesión
+    try {
+      const { useUsersAdminStore } = await import('../store/usersAdminStore')
+      useUsersAdminStore.getState().reset()
+    } catch {
+      // no romper si falla el dynamic import
+    }
   }
 
   const loginWithOAuth = async (payload) => {

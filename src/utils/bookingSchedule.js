@@ -2,18 +2,11 @@ import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 import {
-  isColombianHoliday,
   isSaturday,
   isSunday,
   isWeekday,
-  toDateKey,
 } from './colombianHolidays'
 
-export function isMonday(date) {
-  return date.getDay() === 1
-}
-
-/** Franjas cada 30 min: desde startHour (incl.) hasta endHour (excl.; 12 → última 11:30). */
 function buildSlots(startHour, endHour) {
   const result = []
   let total = startHour * 60
@@ -118,4 +111,3 @@ export function getBookableDatesInRange(startDate, count = 42) {
   return dates
 }
 
-export { toDateKey }

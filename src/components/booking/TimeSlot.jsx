@@ -1,15 +1,6 @@
-import {
-  resolveSlotStatus,
-  SLOT_LABELS,
-  SLOT_STATUS,
-  SLOT_TITLES,
-} from './timeSlotStatus'
+import { SLOT_LABELS, SLOT_STATUS, SLOT_TITLES } from './timeSlotStatus'
 
-/**
- * Franja disponible: botón seleccionable.
- * Franja ocupada o pasada: bloque de solo lectura (no interactivo), estilo gris.
- */
-export default function TimeSlot({ time, status, isSelected, onSelect }) {
+function TimeSlot({ time, status, isSelected, onSelect }) {
   const isReadOnly = status !== SLOT_STATUS.AVAILABLE
   const label = SLOT_LABELS[status]
   const title = SLOT_TITLES[status]
@@ -42,4 +33,4 @@ export default function TimeSlot({ time, status, isSelected, onSelect }) {
   )
 }
 
-export { resolveSlotStatus, SLOT_STATUS }
+export { TimeSlot as default, SLOT_STATUS }

@@ -19,23 +19,24 @@ const ROLE_HOME = {
 export default function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { login, isAuthenticated } = useAuth()
+  const { login, isAuthenticated, user } = useAuth()
   const [role, setRole] = useState('patient')
   const [formData, setFormData] = useState({ email: '', password: '', remember: false })
   const [errors, setErrors] = useState({})
-  const [successMessage, setSuccessMessage] = useState('')
+  const [successMessage] = useState('')
 
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate(ROLE_HOME[role] || '/dashboard', { replace: true })
-    }
-  }, [isAuthenticated, navigate, role])
+    if (!isAuthenticated) return
 
-  useEffect(() => {
-    if (location.state?.successMessage) {
-      setSuccessMessage(location.state.successMessage)
-    }
-  }, [location.state])
+    const roles = user?.roles || []
+    const primary = Array.isArray(roles) && roles.length > 0 ? roles[0] : user?.role
+    const normalized = String(primary || role).trim().toLowerCase()
+
+    navigate(ROLE_HOME[normalized] || '/dashboard', { replace: true })
+  }, [isAuthenticated, navigate, role, user])
+
+  // successMessage se deriva directamente de location.state para evitar setState en un efecto
+  const derivedSuccessMessage = location.state?.successMessage || successMessage
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -49,7 +50,10 @@ export default function LoginPage() {
 
     const result = await login(formData.email, formData.password)
     if (result.success) {
-      navigate(ROLE_HOME[role] || '/dashboard')
+      const roles = result.user?.roles || []
+      const primary = Array.isArray(roles) && roles.length > 0 ? roles[0] : result.user?.role || role
+      const normalized = String(primary).trim().toLowerCase()
+      navigate(ROLE_HOME[normalized] || '/dashboard')
     } else {
       setErrors({ password: result.error })
     }
@@ -85,9 +89,9 @@ export default function LoginPage() {
 
         <div className="sy-auth-form-wrap">
           <h2>Bienvenido de nuevo</h2>
-          {successMessage && (
+          {derivedSuccessMessage && (
             <p style={{ color: 'var(--sy-success)', marginBottom: 12 }}>
-              {successMessage}
+              {derivedSuccessMessage}
             </p>
           )}
           <p>Inicie sesión con su usuario y contraseña o con Google, Apple o Microsoft.</p>

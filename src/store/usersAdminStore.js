@@ -1,13 +1,31 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 
-import seedUsers from '../mocks/data/users.json'
 import { generateUserId } from '../utils/adminUsers'
 
 export const useUsersAdminStore = create(
   persist(
     (set, get) => ({
-      users: [...seedUsers],
+      // Inicialmente vacío; se pobla desde el backend admin-users
+      users: [],
+
+       setUsers: (list) => {
+         const normalized = Array.isArray(list)
+           ? list.map((user) => ({
+               ...user,
+               id: user.id || generateUserId(),
+               name: user.name || user.nombreCompleto || '',
+               nombreCompleto: user.nombreCompleto || user.name || '',
+               role: user.role || 'patient',
+               status: user.status || 'active',
+               specialty: user.specialty || '',
+               identification: user.identification || '',
+               contractNumber: user.contractNumber || '',
+               phone: user.phone || '',
+             }))
+           : []
+         set({ users: normalized })
+       },
 
       addUser: (user) => {
         const entry = {
@@ -38,7 +56,7 @@ export const useUsersAdminStore = create(
 
       getUserById: (id) => get().users.find((u) => u.id === id),
 
-      reset: () => set({ users: [...seedUsers] }),
+      reset: () => set({ users: [] }),
     }),
     {
       name: 'saludya-admin-users',

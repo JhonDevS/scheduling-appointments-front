@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { authApi, api } from '../../../src/services/api'
+import { api,authApi } from '../../../src/services/api'
 import { useAuthStore } from '../../../src/store/authStore'
 import { useUsersAdminStore } from '../../../src/store/usersAdminStore'
 import { resetAuthStore, resetUsersAdminStore } from '../../helpers/store'

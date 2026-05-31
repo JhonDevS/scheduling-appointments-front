@@ -1,4 +1,5 @@
-import TimeSlot, { resolveSlotStatus, SLOT_STATUS } from './TimeSlot'
+import TimeSlot, { SLOT_STATUS } from './TimeSlot'
+import { resolveSlotStatus } from './timeSlotStatus'
 
 export default function TimeSlotGroup({
   title,

@@ -1,15 +1,9 @@
 import { useState } from 'react'
-
 import { useNavigate } from 'react-router-dom'
 
-
-
 import HowItWorksModal from '../components/how-it-works/HowItWorksModal'
-
 import AppFooter from '../components/layout/AppFooter'
-
 import PublicNavbar from '../components/layout/PublicNavbar'
-
 import { useNewsletterStore } from '../store/newsletterStore'
 
 

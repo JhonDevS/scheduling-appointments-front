@@ -8,7 +8,7 @@ import { useAppointmentsBookingStore } from '../store/appointmentsBookingStore'
 import { useUsersAdminStore } from '../store/usersAdminStore'
 import { buildAppointmentsHistoryText, filterAppointmentsByTab } from '../utils/appointmentsFilter'
 import { parseTime12h } from '../utils/bookingSchedule'
-import { parseDateKey, getTodayKey } from '../utils/colombianHolidays'
+import { getTodayKey,parseDateKey } from '../utils/colombianHolidays'
 import { downloadTextFile } from '../utils/downloadFile'
 
 const STATUS_LABEL = {

@@ -2,16 +2,16 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { createAuthApiMock } from './mocks/authApi.mock'
 import { useAppointmentsBookingStore } from '../../src/store/appointmentsBookingStore'
 import { getScheduleForDate } from '../../src/utils/bookingSchedule'
-import { renderApp } from '../helpers/test-utils'
 import {
   getFirstBookableDateKey,
   resetBookingsStore,
   seedAuthenticatedUser,
   seedBooking,
 } from '../helpers/store'
+import { renderApp } from '../helpers/test-utils'
+import { createAuthApiMock } from './mocks/authApi.mock'
 
 vi.mock('../../src/services/api', async (importOriginal) => {
   const actual = await importOriginal()
