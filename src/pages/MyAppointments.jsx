@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom'
 
 import AppFooter from '../components/layout/AppFooter'
 import AppNavbar from '../components/layout/AppNavbar'
+import ConfirmModal from '../components/layout/ConfirmModal'
 import { useAuth } from '../hooks'
 import { useAppointmentsBookingStore } from '../store/appointmentsBookingStore'
 import { useUsersAdminStore } from '../store/usersAdminStore'
 import { buildAppointmentsHistoryText, filterAppointmentsByTab } from '../utils/appointmentsFilter'
 import { parseTime12h } from '../utils/bookingSchedule'
-import { parseDateKey, getTodayKey } from '../utils/colombianHolidays'
+import { getTodayKey,parseDateKey } from '../utils/colombianHolidays'
 import { downloadTextFile } from '../utils/downloadFile'
 
 const STATUS_LABEL = {
@@ -43,6 +44,8 @@ export default function MyAppointments() {
   const [tab, setTab] = useState('upcoming')
   const [showFullHistory, setShowFullHistory] = useState(false)
   const [actionMessage, setActionMessage] = useState('')
+  const [cancelBookingId, setCancelBookingId] = useState(null)
+  const [rescheduleAppointment, setRescheduleAppointment] = useState(null)
 
   const userEmail = user?.email || ''
   const doctorMap = useMemo(
@@ -96,13 +99,26 @@ export default function MyAppointments() {
   )
 
   const handleCancelAppointment = (bookingId) => {
-    updateBooking(bookingId, { status: 'cancelled' })
+    setCancelBookingId(bookingId)
+  }
+
+  const confirmCancelAppointment = () => {
+    if (!cancelBookingId) return
+
+    updateBooking(cancelBookingId, { status: 'cancelled' })
     setActionMessage('Tu cita ha sido cancelada correctamente.')
+    setCancelBookingId(null)
   }
 
   const handleReschedule = (appointment) => {
-    setActionMessage('Redirigiendo al formulario para reprogramar tu cita...')
-    navigate('/book', { state: { rescheduleAppointment: appointment } })
+    setRescheduleAppointment(appointment)
+  }
+
+  const confirmReschedule = () => {
+    if (!rescheduleAppointment) return
+
+    navigate('/book', { state: { rescheduleAppointment } })
+    setRescheduleAppointment(null)
   }
 
   const handleDownloadPdf = () => {
@@ -263,6 +279,24 @@ export default function MyAppointments() {
         </div>
       </main>
 
+      <ConfirmModal
+        isOpen={Boolean(cancelBookingId)}
+        title="Cancelar cita"
+        message="¿Está seguro que desea cancelar esta cita?"
+        confirmLabel="Sí, cancelar"
+        cancelLabel="No, mantener"
+        onConfirm={confirmCancelAppointment}
+        onCancel={() => setCancelBookingId(null)}
+      />
+      <ConfirmModal
+        isOpen={Boolean(rescheduleAppointment)}
+        title="Reagendar cita"
+        message="¿Desea ir al formulario para reagendar esta cita?"
+        confirmLabel="Sí, reagendar"
+        cancelLabel="No, gracias"
+        onConfirm={confirmReschedule}
+        onCancel={() => setRescheduleAppointment(null)}
+      />
       <AppFooter />
     </div>
   )

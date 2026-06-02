@@ -40,9 +40,9 @@ export function AuthProvider({ children }) {
     }
   }, [token, clearAuth, setToken])
 
-  const login = async (email, password) => {
+  const login = async (email, password, requiredRole = 'patient') => {
     try {
-      const result = await authApi.login(email, password)
+      const result = await authApi.login(email, password, requiredRole)
 
       if (result.success && result.user) {
         setUser(result.user)
@@ -75,9 +75,9 @@ export function AuthProvider({ children }) {
     setUser(null)
   }
 
-  const loginWithOAuth = async (payload) => {
+  const loginWithOAuth = async (payload, requiredRole = 'patient') => {
     try {
-      const result = await authApi.loginWithOAuth(payload)
+      const result = await authApi.loginWithOAuth({ ...payload, requiredRole })
       if (result.success && result.user) {
         setUser(result.user)
       }

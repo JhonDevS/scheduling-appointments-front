@@ -48,6 +48,15 @@ const MOCK_USER = {
 }
 
 const MOCK_TOKEN = 'mock-dev-token-' + Date.now()
+const SYSTEM_ADMIN_EMAIL = 'admin@saludya.com'
+
+function normalizeRole(role) {
+  return String(role || '').toLowerCase().trim()
+}
+
+function isSystemAdminEmail(email) {
+  return String(email || '').toLowerCase() === SYSTEM_ADMIN_EMAIL
+}
 
 function formatMockNameFromEmail(email) {
   const baseName = email.split('@')[0]
@@ -72,22 +81,29 @@ function createMockUser(email) {
     email,
     name: fullName,
     nombreCompleto: fullName,
-    role: 'patient',
+    role: isSystemAdminEmail(email) ? 'admin' : 'patient',
     status: 'active',
   }
 }
 
 // Funciones utilitarias para auth
 export const authApi = {
-  login: async (email, password) => {
+  login: async (email, password, requiredRole = 'patient') => {
     try {
       const response = await api.post('/auth/login', { email, password })
       
       // El backend devuelve { success, message, data: { usuario, token } }
       if (response.success && response.data?.token) {
+        const user = response.data.usuario
+        if (requiredRole && normalizeRole(user?.role) !== normalizeRole(requiredRole)) {
+          return {
+            success: false,
+            error: 'No tiene permisos para acceder con este rol. Verifique sus credenciales.',
+          }
+        }
         useAuthStore.getState().setToken(response.data.token)
-        useAuthStore.getState().setUser(response.data.usuario)
-        return { success: true, user: response.data.usuario }
+        useAuthStore.getState().setUser(user)
+        return { success: true, user }
       }
       
       return { success: false, error: response.error?.message || 'Error al iniciar sesión' }
@@ -96,10 +112,32 @@ export const authApi = {
       if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED' || error.response?.status === 404 || !error.response) {
         console.log('Backend no disponible, usando mock data')
         const existingUser = useUsersAdminStore.getState().users.find((u) => u.email?.toLowerCase() === email.toLowerCase())
-        const mockUser = existingUser || createMockUser(email)
-        if (!existingUser) {
-          useUsersAdminStore.getState().addUser(mockUser)
+        if (existingUser) {
+          if (requiredRole && normalizeRole(existingUser.role) !== normalizeRole(requiredRole)) {
+            return {
+              success: false,
+              error: 'No tiene permisos para acceder con este rol. Verifique sus credenciales.',
+            }
+          }
+          useAuthStore.getState().setToken(MOCK_TOKEN)
+          useAuthStore.getState().setUser(existingUser)
+          return { success: true, user: existingUser, isMock: true }
         }
+        if (isSystemAdminEmail(email)) {
+          const adminUser = createMockUser(email)
+          useUsersAdminStore.getState().addUser(adminUser)
+          useAuthStore.getState().setToken(MOCK_TOKEN)
+          useAuthStore.getState().setUser(adminUser)
+          return { success: true, user: adminUser, isMock: true }
+        }
+        if (requiredRole !== 'patient') {
+          return {
+            success: false,
+            error: 'No se encontró un usuario con este rol. Verifique sus credenciales.',
+          }
+        }
+        const mockUser = createMockUser(email)
+        useUsersAdminStore.getState().addUser(mockUser)
         useAuthStore.getState().setToken(MOCK_TOKEN)
         useAuthStore.getState().setUser(mockUser)
         return { success: true, user: mockUser, isMock: true }
@@ -180,7 +218,7 @@ export const authApi = {
     }
   },
 
-  loginWithOAuth: async ({ provider, email, name, credential }) => {
+  loginWithOAuth: async ({ provider, email, name, credential, requiredRole = 'patient' }) => {
     try {
       const response = await api.post('/auth/oauth', {
         provider,
@@ -189,9 +227,16 @@ export const authApi = {
         credential,
       })
       if (response.success && response.data?.token) {
+        const user = response.data.usuario
+        if (requiredRole && normalizeRole(user?.role) !== normalizeRole(requiredRole)) {
+          return {
+            success: false,
+            error: 'No tiene permisos para acceder con este rol. Verifique sus credenciales.',
+          }
+        }
         useAuthStore.getState().setToken(response.data.token)
-        useAuthStore.getState().setUser(response.data.usuario)
-        return { success: true, user: response.data.usuario }
+        useAuthStore.getState().setUser(user)
+        return { success: true, user }
       }
       return { success: false, error: response.error?.message || 'Error al iniciar sesión social' }
     } catch (error) {
@@ -218,7 +263,37 @@ export const authApi = {
         }
 
         const existingUser = useUsersAdminStore.getState().users.find((u) => u.email?.toLowerCase() === resolvedEmail.toLowerCase())
-        const mockUser = existingUser || useUsersAdminStore.getState().addUser({
+        if (existingUser) {
+          if (requiredRole && normalizeRole(existingUser.role) !== normalizeRole(requiredRole)) {
+            return {
+              success: false,
+              error: 'No tiene permisos para acceder con este rol. Verifique sus credenciales.',
+            }
+          }
+          useAuthStore.getState().setToken(`${MOCK_TOKEN}-${provider}`)
+          useAuthStore.getState().setUser(existingUser)
+          return { success: true, user: existingUser, isMock: true }
+        }
+        if (isSystemAdminEmail(resolvedEmail)) {
+          const adminUser = useUsersAdminStore.getState().addUser({
+            email: resolvedEmail,
+            name: resolvedName || formatMockNameFromEmail(resolvedEmail),
+            nombreCompleto: resolvedName || formatMockNameFromEmail(resolvedEmail),
+            role: 'admin',
+            status: 'active',
+            authProvider: provider,
+          })
+          useAuthStore.getState().setToken(`${MOCK_TOKEN}-${provider}`)
+          useAuthStore.getState().setUser(adminUser)
+          return { success: true, user: adminUser, isMock: true }
+        }
+        if (requiredRole !== 'patient') {
+          return {
+            success: false,
+            error: 'No se encontró un usuario con este rol. Verifique sus credenciales.',
+          }
+        }
+        const mockUser = useUsersAdminStore.getState().addUser({
           email: resolvedEmail,
           name: resolvedName || formatMockNameFromEmail(resolvedEmail),
           nombreCompleto: resolvedName || formatMockNameFromEmail(resolvedEmail),

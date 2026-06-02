@@ -16,7 +16,7 @@ export default function DoctorAnalytics() {
   )
 
   const doctorId = currentDoctor?.id ?? 'SY-2024-81'
-  const doctorName = currentDoctor?.name ?? user?.nombreCompleto ?? 'el especialista'
+  const doctorName = currentDoctor?.name ?? user?.nombreCompleto ?? user?.name ?? 'el especialista'
 
   const metrics = useMemo(() => {
     const now = new Date()

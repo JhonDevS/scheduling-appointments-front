@@ -1,22 +1,28 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
+import ConfirmModal from '../components/layout/ConfirmModal'
 import LegalLink from '../components/layout/LegalLink'
+import ValidationModal from '../components/layout/ValidationModal'
 import { useAuth } from '../hooks'
+
+const EMPTY_FORM = {
+  identification: '',
+  fullName: '',
+  email: '',
+  phone: '',
+  password: '',
+  acceptTerms: false,
+}
 
 export default function RegisterPage() {
   const navigate = useNavigate()
   const { register } = useAuth()
-  const [formData, setFormData] = useState({
-    identification: '',
-    fullName: '',
-    email: '',
-    phone: '',
-    password: '',
-    acceptTerms: false,
-  })
+  const [formData, setFormData] = useState(EMPTY_FORM)
   const [errors, setErrors] = useState({})
   const [isLoading, setIsLoading] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const validationMessages = Object.values(errors).filter(Boolean)
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -70,11 +76,9 @@ export default function RegisterPage() {
 
     setIsLoading(false)
     if (result.success) {
-      navigate('/login', {
-        state: {
-          successMessage: 'Registro exitoso. Ya puedes iniciar sesión con tu correo y contraseña.',
-        },
-      })
+      setShowSuccessModal(true)
+      setFormData(EMPTY_FORM)
+      setErrors({})
     } else {
       setErrors({ general: typeof result.error === 'string' ? result.error : 'Error al registrar' })
     }
@@ -112,6 +116,29 @@ export default function RegisterPage() {
             </Link>
           </p>
 
+          <ValidationModal
+            isOpen={validationMessages.length > 0}
+            title="Validación"
+            messages={validationMessages}
+            onClose={() => setErrors({})}
+          />
+          <ConfirmModal
+            isOpen={showSuccessModal}
+            title="Registro exitoso"
+            message="El paciente se ha registrado correctamente. Ahora puedes iniciar sesión con tus credenciales."
+            confirmLabel="Ir al login"
+            cancelLabel="Cerrar"
+            onConfirm={() => {
+              setShowSuccessModal(false)
+              navigate('/login', {
+                state: {
+                  successMessage: 'Registro exitoso. Ya puedes iniciar sesión con tu correo y contraseña.',
+                },
+              })
+            }}
+            onCancel={() => setShowSuccessModal(false)}
+          />
+
           <form onSubmit={handleSubmit}>
             <div className="sy-field">
               <label htmlFor="identification">Número de identificación</label>
@@ -122,7 +149,6 @@ export default function RegisterPage() {
                 value={formData.identification}
                 onChange={handleChange}
               />
-              {errors.identification && <span className="sy-field-hint" style={{ color: 'var(--sy-danger)' }}>{errors.identification}</span>}
             </div>
 
             <div className="sy-field">
@@ -134,7 +160,6 @@ export default function RegisterPage() {
                 value={formData.fullName}
                 onChange={handleChange}
               />
-              {errors.fullName && <span className="sy-field-hint" style={{ color: 'var(--sy-danger)' }}>{errors.fullName}</span>}
             </div>
 
             <div className="sy-field">
@@ -147,7 +172,6 @@ export default function RegisterPage() {
                 value={formData.email}
                 onChange={handleChange}
               />
-              {errors.email && <span className="sy-field-hint" style={{ color: 'var(--sy-danger)' }}>{errors.email}</span>}
             </div>
 
             <div className="sy-field">
@@ -159,7 +183,6 @@ export default function RegisterPage() {
                 value={formData.phone}
                 onChange={handleChange}
               />
-              {errors.phone && <span className="sy-field-hint" style={{ color: 'var(--sy-danger)' }}>{errors.phone}</span>}
             </div>
 
             <div className="sy-field">
@@ -172,7 +195,6 @@ export default function RegisterPage() {
                 value={formData.password}
                 onChange={handleChange}
               />
-              {errors.password && <span className="sy-field-hint" style={{ color: 'var(--sy-danger)' }}>{errors.password}</span>}
               <p className="sy-field-hint">
                 Al menos 8 caracteres, incluyendo una mayúscula y un símbolo especial.
               </p>
@@ -191,13 +213,6 @@ export default function RegisterPage() {
                 los datos médicos sensibles.
               </span>
             </label>
-            {errors.acceptTerms && (
-              <p style={{ color: 'var(--sy-danger)', marginBottom: 12 }}>{errors.acceptTerms}</p>
-            )}
-
-            {errors.general && (
-              <p style={{ color: 'var(--sy-danger)', marginBottom: 12 }}>{errors.general}</p>
-            )}
 
             <button type="submit" className="sy-btn sy-btn--primary sy-btn--block sy-btn--lg" disabled={isLoading}>
               {isLoading ? 'Registrando...' : 'Crear cuenta →'}

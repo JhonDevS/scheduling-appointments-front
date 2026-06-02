@@ -1,6 +1,6 @@
 # SaludYa — Frontend de agendamiento médico
 
-Aplicación web para la gestión de citas médicas de **SaludYa**: landing pública, registro, inicio de sesión (correo/contraseña, Gmail, Outlook/Hotmail), reserva de citas con reglas de agenda en Colombia, panel del paciente, portal médico y administración de usuarios.
+Aplicación web para la gestión de citas médicas de **SaludYa**: landing pública, registro, inicio de sesión (correo/contraseña, Gmail, Outlook/Hotmail, Apple), reserva de citas con reglas de agenda en Colombia, panel del paciente, portal médico y administración de usuarios.
 
 Desarrollada con **React 19**, **Vite 7**, **React Router 7** y **Zustand**.
 
@@ -30,12 +30,13 @@ Desarrollada con **React 19**, **Vite 7**, **React Router 7** y **Zustand**.
 |--------|-------------|
 | **Inicio** | Landing con hero, servicios, flujo de citas y modal «Cómo funciona» |
 | **Registro** | Formulario con validación y aceptación de términos |
-| **Login** | Paciente / Doctor / Admin; OAuth Gmail y Microsoft (Outlook/Hotmail) |
+| **Login** | Paciente / Doctor / Admin; OAuth Gmail, Microsoft (Outlook/Hotmail) y Apple |
 | **Reservar cita** | Calendario, franjas horarias, bloqueo de cupos ocupados |
 | **Mis citas** | Próximas citas e historial |
 | **Panel paciente** | Dashboard, salud y recetas |
 | **Portal médico** | Cronograma y disponibilidad |
 | **Admin** | Gestión de usuarios |
+| **Responsive** | Navegación móvil y portal adaptable en escritorio/tablet/móvil |
 
 ---
 
@@ -60,6 +61,8 @@ cd scheduling-appointments-front
 
 # Instalar dependencias
 npm install
+# o con pnpm
+pnpm install
 
 # Copiar variables de entorno de ejemplo
 copy .env.example .env   # Windows
@@ -146,7 +149,15 @@ Orden alineado al diseño del producto:
 | 5 | `/appointments` | Mis citas | Autenticado |
 | 6 | `/dashboard` | Panel del paciente | Autenticado |
 | 7 | `/doctor` | Portal médico | Autenticado |
-| 8 | `/admin` | Gestión de usuarios | Autenticado |
+| 8 | `/profile` | Perfil del usuario | Autenticado |
+| 9 | `/admin` | Gestión de usuarios | Autenticado |
+
+Rutas adicionales del portal médico:
+- `/doctor/calendar` — Calendario médico
+- `/doctor/appointments` — Citas médicas
+- `/doctor/users` — Pacientes y usuarios
+- `/doctor/analytics` — Análisis y métricas
+- `/doctor/settings` — Configuración del médico
 
 Redirecciones: `/home` → `/dashboard`, `/calendar` → `/book`.
 
@@ -169,8 +180,17 @@ Festivos definidos en `src/utils/colombianHolidays.js`.
 1. **Correo y contraseña** — integración con `POST /auth/login` (fallback mock sin backend).
 2. **Gmail** — Google OAuth (`@react-oauth/google`) o modo desarrollo con dominio `@gmail.com`.
 3. **Outlook / Hotmail** — Microsoft MSAL (`@azure/msal-browser`) o modo desarrollo con dominios Microsoft.
+4. **Apple** — inicio de sesión social con Apple en modo de prueba.
 
-El rol elegido en login (Paciente / Doctor / Administrador) define la redirección inicial al panel correspondiente.
+El rol elegido en login (Paciente / Doctor / Administrador) define la redirección inicial al panel correspondiente. El sistema valida que el usuario autenticado tenga el rol correcto y, si no coincide, muestra un mensaje para verificar credenciales y bloquea el acceso.
+
+El frontend es completamente responsive: el navbar principal se adapta a móviles con menú colapsable, y el portal médico utiliza un sidebar overlay en pantallas pequeñas. Además, el avatar de usuario muestra un menú rápido con opciones de `Perfil` y `Cerrar sesión`.
+
+Credenciales de administrador de sistema de prueba:
+- Usuario: `admin@saludya.com`
+- Contraseña: `Admin1234+`
+
+Si el backend no está disponible, el auth cae en un modo mock que permite probar los flujos básicos con datos locales.
 
 ---
 

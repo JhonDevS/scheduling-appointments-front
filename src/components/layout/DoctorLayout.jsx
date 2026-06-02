@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../../hooks'
@@ -30,6 +30,24 @@ export default function DoctorLayout({
   const users = useUsersAdminStore((state) => state.users)
   const [helpOpen, setHelpOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const accountMenuRef = useRef(null)
+  const sidebarRef = useRef(null)
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(event.target)) {
+        setAccountMenuOpen(false)
+      }
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+        setSidebarOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const resolvedUser = useMemo(() => {
     const authUser = user || {}
@@ -77,10 +95,24 @@ export default function DoctorLayout({
   return (
     <div className="sy-portal">
       <HelpModal isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
-      <aside className={`sy-portal__sidebar sy-portal__sidebar--${menuVariant}`}>
-        <div className="sy-portal__brand">
-          <span className="sy-logo sy-logo--blue">Salud<span>Ya</span></span>
-          <small>{portalTitle}</small>
+      {sidebarOpen && <div className="sy-portal__backdrop" onClick={() => setSidebarOpen(false)} />}
+      <aside
+        ref={sidebarRef}
+        className={`sy-portal__sidebar sy-portal__sidebar--${menuVariant} ${sidebarOpen ? 'is-open' : ''}`}
+      >
+        <div className="sy-portal__sidebar-header">
+          <div className="sy-portal__brand">
+            <span className="sy-logo sy-logo--blue">Salud<span>Ya</span></span>
+            <small>{portalTitle}</small>
+          </div>
+          <button
+            type="button"
+            className="sy-portal__sidebar-close"
+            aria-label="Cerrar menú"
+            onClick={() => setSidebarOpen(false)}
+          >
+            ×
+          </button>
         </div>
 
         <nav className={`sy-portal__menu sy-portal__menu--${menuVariant}`} aria-label={menuLabel}>
@@ -142,17 +174,43 @@ export default function DoctorLayout({
             <button
               type="button"
               className="sy-icon-btn"
+              aria-label="Abrir menú"
+              onClick={() => setSidebarOpen((open) => !open)}
+            >
+              ☰
+            </button>
+            <button
+              type="button"
+              className="sy-icon-btn"
               aria-label="Ayuda"
               onClick={() => setHelpOpen(true)}
             >
               ?
             </button>
-            <div className="sy-portal__user">
-              <div>
-                <strong>{displayName}</strong>
-                <span>{displayRole}</span>
-              </div>
-              <div className="sy-avatar" aria-hidden />
+            <div className="sy-portal__user" ref={accountMenuRef}>
+              <button
+                type="button"
+                className="sy-user-account-btn"
+                aria-expanded={accountMenuOpen}
+                aria-label="Abrir menú de usuario"
+                onClick={() => setAccountMenuOpen((open) => !open)}
+              >
+                <div>
+                  <strong>{displayName}</strong>
+                  <span>{displayRole}</span>
+                </div>
+                <div className="sy-avatar" aria-hidden />
+              </button>
+              {accountMenuOpen && (
+                <div className="sy-user-menu__dropdown" role="menu">
+                  <button type="button" className="sy-user-menu__item" onClick={() => { setAccountMenuOpen(false); navigate('/profile') }}>
+                    Perfil
+                  </button>
+                  <button type="button" className="sy-user-menu__item" onClick={() => { setAccountMenuOpen(false); handleLogout() }}>
+                    Cerrar sesión
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>

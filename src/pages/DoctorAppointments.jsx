@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
 
+import BookingEditModal from '../components/layout/BookingEditModal'
 import { useAuth } from '../hooks'
 import { useAppointmentsBookingStore } from '../store/appointmentsBookingStore'
 import { useUsersAdminStore } from '../store/usersAdminStore'
-import { parseDateKey, getTodayKey } from '../utils/colombianHolidays'
+import { getTodayKey,parseDateKey } from '../utils/colombianHolidays'
 
 const STATUS_LABEL = {
   confirmed: { text: 'Confirmada', className: 'sy-status-dot--ok' },
@@ -45,8 +46,8 @@ export default function DoctorAppointments() {
     [bookings, doctorId],
   )
 
-  const [activeBookingId, setActiveBookingId] = useState(null)
-  const [draft, setDraft] = useState({ diagnosis: '', prescription: '', observations: '' })
+  const [selectedBooking, setSelectedBooking] = useState(null)
+  const [bookingEditOpen, setBookingEditOpen] = useState(false)
   const [message, setMessage] = useState('')
 
   const sortedBookings = useMemo(
@@ -57,26 +58,24 @@ export default function DoctorAppointments() {
     [doctorBookings],
   )
 
-  const handleToggleDetails = (booking) => {
-    const newId = activeBookingId === booking.id ? null : booking.id
-    setActiveBookingId(newId)
+  const openBookingEdit = (booking) => {
+    setSelectedBooking(booking)
+    setBookingEditOpen(true)
     setMessage('')
-    if (newId) {
-      setDraft({
-        diagnosis: booking.diagnosis || '',
-        prescription: booking.prescription || '',
-        observations: booking.observations || '',
-      })
-    }
   }
 
-  const handleFinalize = (booking) => {
-    updateBooking(booking.id, {
-      ...draft,
-      status: 'atendida',
+  const handleSaveBooking = (draft) => {
+    if (!selectedBooking) return
+
+    updateBooking(selectedBooking.id, {
+      diagnosis: draft.diagnosis.trim(),
+      prescription: draft.prescription.trim(),
+      observations: draft.observations.trim(),
+      status: draft.status,
     })
-    setActiveBookingId(null)
-    setMessage('Atención finalizada. Los cambios se guardaron correctamente.')
+    setBookingEditOpen(false)
+    setSelectedBooking(null)
+    setMessage('Cita actualizada correctamente.')
   }
 
   return (
@@ -85,7 +84,7 @@ export default function DoctorAppointments() {
         <div>
           <span className="sy-kicker">Panel médico</span>
           <h1 style={{ margin: '8px 0' }}>
-            Citas de {currentDoctor?.name || user?.nombreCompleto || 'el doctor'}
+            Citas de {currentDoctor?.name || user?.nombreCompleto || user?.name || 'el doctor'}
           </h1>
           <p style={{ color: 'var(--sy-text-muted)', maxWidth: 620 }}>
             {currentDoctor
@@ -114,7 +113,6 @@ export default function DoctorAppointments() {
         <div className="sy-table" style={{ marginTop: 24 }}>
           {sortedBookings.map((booking) => {
             const status = getBookingStatus(booking)
-            const isActive = activeBookingId === booking.id
 
             return (
               <div
@@ -134,9 +132,9 @@ export default function DoctorAppointments() {
                     <button
                       type="button"
                       className="sy-btn sy-btn--outline"
-                      onClick={() => handleToggleDetails(booking)}
+                      onClick={() => openBookingEdit(booking)}
                     >
-                      {isActive ? 'Ocultar detalles' : 'Ver detalles'}
+                      Editar cita
                     </button>
                   </div>
                 </div>
@@ -153,52 +151,21 @@ export default function DoctorAppointments() {
                   </div>
                 )}
 
-                {isActive && (
-                  <div style={{ padding: 18, borderRadius: 12, background: '#f9fafb', border: '1px solid var(--sy-border)' }}>
-                    <label style={{ display: 'block', marginBottom: 14 }}>
-                      <strong>Diagnóstico</strong>
-                      <textarea
-                        value={draft.diagnosis}
-                        onChange={(event) => setDraft((prev) => ({ ...prev, diagnosis: event.target.value }))}
-                        rows={4}
-                        style={{ width: '100%', marginTop: 8, resize: 'vertical', borderRadius: 12, border: '1px solid rgba(0,0,0,0.12)', padding: 12 }}
-                      />
-                    </label>
-
-                    <label style={{ display: 'block', marginBottom: 14 }}>
-                      <strong>Receta / Medicamentos</strong>
-                      <textarea
-                        value={draft.prescription}
-                        onChange={(event) => setDraft((prev) => ({ ...prev, prescription: event.target.value }))}
-                        rows={3}
-                        style={{ width: '100%', marginTop: 8, resize: 'vertical', borderRadius: 12, border: '1px solid rgba(0,0,0,0.12)', padding: 12 }}
-                      />
-                    </label>
-
-                    <label style={{ display: 'block', marginBottom: 18 }}>
-                      <strong>Observaciones</strong>
-                      <textarea
-                        value={draft.observations}
-                        onChange={(event) => setDraft((prev) => ({ ...prev, observations: event.target.value }))}
-                        rows={3}
-                        style={{ width: '100%', marginTop: 8, resize: 'vertical', borderRadius: 12, border: '1px solid rgba(0,0,0,0.12)', padding: 12 }}
-                      />
-                    </label>
-
-                    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                      <button type="button" className="sy-btn sy-btn--primary" onClick={() => handleFinalize(booking)}>
-                        Finalizar atención
-                      </button>
-                      <button type="button" className="sy-btn sy-btn--outline" onClick={() => setActiveBookingId(null)}>
-                        Cancelar
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
             )
           })}
         </div>
+      )}
+      {selectedBooking && (
+        <BookingEditModal
+          isOpen={bookingEditOpen}
+          booking={selectedBooking}
+          onClose={() => {
+            setBookingEditOpen(false)
+            setSelectedBooking(null)
+          }}
+          onSave={handleSaveBooking}
+        />
       )}
     </div>
   )

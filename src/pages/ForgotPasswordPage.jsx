@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import ValidationModal from '../components/layout/ValidationModal'
 import { authApi } from '../services/api'
 
 export default function ForgotPasswordPage() {
@@ -38,21 +39,28 @@ export default function ForgotPasswordPage() {
             Si el correo existe en nuestro sistema, recibirá instrucciones en breve.
           </p>
         ) : (
-          <form onSubmit={handleSubmit}>
-            <div className="sy-field">
-              <label htmlFor="forgot-email">Correo electrónico</label>
-              <input
-                id="forgot-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              {error && <span style={{ color: 'var(--sy-danger)' }}>{error}</span>}
-            </div>
-            <button type="submit" className="sy-btn sy-btn--primary sy-btn--block" disabled={loading}>
-              {loading ? 'Enviando…' : 'Enviar enlace'}
-            </button>
-          </form>
+          <>
+            <form onSubmit={handleSubmit}>
+              <div className="sy-field">
+                <label htmlFor="forgot-email">Correo electrónico</label>
+                <input
+                  id="forgot-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <button type="submit" className="sy-btn sy-btn--primary sy-btn--block" disabled={loading}>
+                {loading ? 'Enviando…' : 'Enviar enlace'}
+              </button>
+            </form>
+            <ValidationModal
+              isOpen={Boolean(error)}
+              title="Validación"
+              messages={error ? [error] : []}
+              onClose={() => setError('')}
+            />
+          </>
         )}
         <p style={{ marginTop: 24 }}>
           <Link to="/login" style={{ color: 'var(--sy-teal)', fontWeight: 600 }}>

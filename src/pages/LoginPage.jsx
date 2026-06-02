@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import SocialLogin from '../components/auth/SocialLogin'
+import ValidationModal from '../components/layout/ValidationModal'
 import { useAuth } from '../hooks'
 
 const ROLES = [
@@ -19,23 +20,18 @@ const ROLE_HOME = {
 export default function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { login, isAuthenticated } = useAuth()
+  const { login, isAuthenticated, user } = useAuth()
   const [role, setRole] = useState('patient')
   const [formData, setFormData] = useState({ email: '', password: '', remember: false })
   const [errors, setErrors] = useState({})
-  const [successMessage, setSuccessMessage] = useState('')
+  const successMessage = location.state?.successMessage || ''
+  const validationMessages = Object.values(errors).filter(Boolean)
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && user?.role === role) {
       navigate(ROLE_HOME[role] || '/dashboard', { replace: true })
     }
-  }, [isAuthenticated, navigate, role])
-
-  useEffect(() => {
-    if (location.state?.successMessage) {
-      setSuccessMessage(location.state.successMessage)
-    }
-  }, [location.state])
+  }, [isAuthenticated, navigate, role, user])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -47,7 +43,7 @@ export default function LoginPage() {
       return
     }
 
-    const result = await login(formData.email, formData.password)
+    const result = await login(formData.email, formData.password, role)
     if (result.success) {
       navigate(ROLE_HOME[role] || '/dashboard')
     } else {
@@ -90,6 +86,12 @@ export default function LoginPage() {
               {successMessage}
             </p>
           )}
+          <ValidationModal
+            isOpen={validationMessages.length > 0}
+            title="Validación"
+            messages={validationMessages}
+            onClose={() => setErrors({})}
+          />
           <p>Inicie sesión con su usuario y contraseña o con Google, Apple o Microsoft.</p>
 
           <div className="sy-role-tabs" role="tablist">
@@ -116,11 +118,6 @@ export default function LoginPage() {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
-              {errors.email && (
-                <span className="sy-field-hint" style={{ color: 'var(--sy-danger)' }}>
-                  {errors.email}
-                </span>
-              )}
             </div>
 
             <div className="sy-field">
@@ -137,11 +134,6 @@ export default function LoginPage() {
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               />
-              {errors.password && (
-                <span className="sy-field-hint" style={{ color: 'var(--sy-danger)' }}>
-                  {errors.password}
-                </span>
-              )}
             </div>
 
             <label className="sy-checkbox">

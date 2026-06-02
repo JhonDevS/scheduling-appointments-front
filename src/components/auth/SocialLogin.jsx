@@ -9,6 +9,7 @@ import {
   hasMicrosoftClientId,
   validateProviderEmail,
 } from '../../utils/socialAuth'
+import ValidationModal from '../layout/ValidationModal'
 
 const ROLE_HOME = {
   patient: '/dashboard',
@@ -81,7 +82,7 @@ export default function SocialLogin({ role = 'patient' }) {
   const finishLogin = async (payload) => {
     setLoading(true)
     setError('')
-    const result = await loginWithOAuth(payload)
+    const result = await loginWithOAuth(payload, role)
     setLoading(false)
     if (result.success) {
       setFallbackProvider(null)
@@ -203,11 +204,12 @@ export default function SocialLogin({ role = 'patient' }) {
         </button>
       </div>
 
-      {error && !fallbackProvider && (
-        <p style={{ color: 'var(--sy-danger)', fontSize: '0.85rem', textAlign: 'center', marginTop: 8 }}>
-          {error}
-        </p>
-      )}
+      <ValidationModal
+        isOpen={Boolean(error) && !fallbackProvider}
+        title="Validación"
+        messages={error ? [error] : []}
+        onClose={() => setError('')}
+      />
 
       {fallbackProvider && (
         <ProviderFallbackModal

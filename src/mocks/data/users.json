@@ -88,6 +88,13 @@
     "specialty": "Gastroenterólogo senior"
   },
   {
+    "name": "Administrador SaludYa",
+    "id": "SY-2024-00",
+    "email": "admin@saludya.com",
+    "role": "admin",
+    "status": "active"
+  },
+  {
     "name": "Elena Rodríguez",
     "id": "SY-2024-94",
     "email": "elena.rod@gmail.com",

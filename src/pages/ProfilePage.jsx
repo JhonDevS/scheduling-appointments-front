@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 
 import AppFooter from '../components/layout/AppFooter'
 import AppNavbar from '../components/layout/AppNavbar'
+import ValidationModal from '../components/layout/ValidationModal'
 import { useAuth } from '../hooks'
 import { useAuthStore } from '../store/authStore'
 
@@ -12,13 +13,16 @@ export default function ProfilePage() {
   const [nombreCompleto, setNombreCompleto] = useState(user?.nombreCompleto || '')
   const [email, setEmail] = useState(user?.email || '')
   const [message, setMessage] = useState('')
+  const [validationErrors, setValidationErrors] = useState([])
 
   const handleSave = (e) => {
     e.preventDefault()
     if (!nombreCompleto.trim() || !email.trim()) {
-      setMessage('Complete nombre y correo.')
+      setValidationErrors(['Complete nombre y correo.'])
+      setMessage('')
       return
     }
+    setValidationErrors([])
     useAuthStore.getState().setUser({ ...user, nombreCompleto: nombreCompleto.trim(), email: email.trim() })
     setMessage('Perfil actualizado correctamente.')
   }
@@ -49,6 +53,12 @@ export default function ProfilePage() {
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
+          <ValidationModal
+            isOpen={validationErrors.length > 0}
+            title="Validación"
+            messages={validationErrors}
+            onClose={() => setValidationErrors([])}
+          />
           {message && <p style={{ color: 'var(--sy-teal)' }}>{message}</p>}
           <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
             <button type="submit" className="sy-btn sy-btn--primary">

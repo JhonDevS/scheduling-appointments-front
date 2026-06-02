@@ -29,7 +29,7 @@ export default function DoctorDashboard() {
   )
 
   const doctorId = currentDoctor?.id ?? 'SY-2024-81'
-  const doctorName = currentDoctor?.name ?? user?.nombreCompleto ?? 'el doctor'
+  const doctorName = currentDoctor?.name ?? user?.nombreCompleto ?? user?.name ?? 'el doctor'
 
   const today = getDateInTimeZone(new Date())
   const tomorrow = new Date(today)

@@ -87,6 +87,9 @@ export default function PatientDashboard() {
   }
 
   const handleCancelAppointment = (bookingId) => {
+    const confirmed = window.confirm('¿Está seguro que desea cancelar la cita?')
+    if (!confirmed) return
+
     removeBooking(bookingId)
     setRenewalMsg('Tu cita ha sido cancelada correctamente.')
   }
@@ -107,7 +110,7 @@ export default function PatientDashboard() {
         <div className="sy-dash-top">
           <header className="sy-page-header">
             <span className="sy-kicker">Panel de control</span>
-            <h1>Hola, {user?.nombreCompleto || 'Paciente'}</h1>
+            <h1>Hola, {user?.nombreCompleto || user?.name || 'Paciente'}</h1>
             <p>
               {nextAppointment ? (
                 <>Tu próxima consulta es con {doctorMap[nextAppointment.doctorId]?.name || 'un especialista'} el {formatDateLabel(nextAppointment.dateKey)} a las {nextAppointment.time}.</>

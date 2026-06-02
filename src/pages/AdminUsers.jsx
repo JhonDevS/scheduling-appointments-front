@@ -1,10 +1,14 @@
 import { useMemo, useState } from 'react'
 
+import ConfirmModal from '../components/layout/ConfirmModal'
 import DoctorLayout from '../components/layout/DoctorLayout'
+import InfoModal from '../components/layout/InfoModal'
+import { useAuthStore } from '../store/authStore'
 import { useUsersAdminStore } from '../store/usersAdminStore'
 import { ADMIN_PAGE_SIZE, filterUsers, paginateUsers } from '../utils/adminUsers'
 
 const ROLE_LABEL = { doctor: 'DOCTOR', patient: 'PACIENTE', admin: 'ADMIN' }
+const ENTITY_LABEL = { doctor: 'Doctor', patient: 'Paciente', admin: 'Administrador' }
 const STATUS_LABEL = { active: 'Activo', suspended: 'Suspendido', pending: 'Pendiente' }
 
 const ADMIN_MENU = [
@@ -37,6 +41,11 @@ export default function AdminUsers() {
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState(EMPTY_FORM)
   const [formError, setFormError] = useState('')
+  const [successModalOpen, setSuccessModalOpen] = useState(false)
+  const [successModalMessage, setSuccessModalMessage] = useState('')
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [pendingDelete, setPendingDelete] = useState({ id: null, name: '', role: '' })
+  const currentUser = useAuthStore((s) => s.user)
 
   const filtered = useMemo(
     () => filterUsers(users, { roleFilter, statusFilter }),
@@ -49,6 +58,8 @@ export default function AdminUsers() {
     setEditingId(null)
     setForm(EMPTY_FORM)
     setFormError('')
+    setSuccessModalOpen(false)
+    setSuccessModalMessage('')
     setModalOpen(true)
   }
 
@@ -67,6 +78,8 @@ export default function AdminUsers() {
       confirmPassword: '',
     })
     setFormError('')
+    setSuccessModalOpen(false)
+    setSuccessModalMessage('')
     setModalOpen(true)
   }
 
@@ -104,19 +117,31 @@ export default function AdminUsers() {
       delete patch.password
       delete patch.confirmPassword
       updateUser(editingId, patch)
+      setSuccessModalMessage('Cambios guardados correctamente.')
+      setSuccessModalOpen(true)
     } else {
       const payload = { ...form }
       delete payload.confirmPassword
+      if (payload.role === 'admin') payload.status = 'active'
       addUser(payload)
+      setSuccessModalMessage('Usuario creado correctamente.')
+      setSuccessModalOpen(true)
     }
     setModalOpen(false)
     setPage(1)
   }
 
-  const handleDelete = (id) => {
-    if (window.confirm('¿Eliminar este usuario?')) {
-      removeUser(id)
+  const handleDelete = (id, name, role) => {
+    setPendingDelete({ id, name, role })
+    setConfirmOpen(true)
+  }
+
+  const handleConfirmDelete = () => {
+    if (pendingDelete.id) {
+      removeUser(pendingDelete.id)
     }
+    setConfirmOpen(false)
+    setPendingDelete({ id: null, name: '' })
   }
 
   return (
@@ -249,7 +274,12 @@ export default function AdminUsers() {
                   <button type="button" aria-label={`Editar ${u.name}`} onClick={() => openEdit(u)}>
                     ✏️
                   </button>
-                  <button type="button" aria-label={`Eliminar ${u.name}`} onClick={() => handleDelete(u.id)}>
+                  <button
+                    type="button"
+                    aria-label={`Eliminar ${u.name}`}
+                    onClick={() => handleDelete(u.id, u.name, u.role)}
+                    disabled={currentUser?.id === u.id}
+                  >
                     🗑️
                   </button>
                 </td>
@@ -286,16 +316,33 @@ export default function AdminUsers() {
         </div>
       </div>
 
+      <ConfirmModal
+        isOpen={confirmOpen}
+        title={pendingDelete.role === 'admin' ? 'Confirmar eliminación de administrador' : 'Confirmar eliminación'}
+        message={`¿Está seguro que desea eliminar ${pendingDelete.name || 'este usuario'}${pendingDelete.role === 'admin' ? ' como administrador' : ''}? Esta acción es permanente.`}
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={handleConfirmDelete}
+      />
+
       {modalOpen && (
         <div className="sy-modal" role="dialog" aria-modal="true">
           <button type="button" className="sy-modal__backdrop" aria-label="Cerrar" onClick={() => setModalOpen(false)} />
           <div className="sy-modal__panel" style={{ maxWidth: 480 }}>
             <header className="sy-modal__header">
-              <h2>{editingId ? 'Editar usuario' : 'Nuevo usuario'}</h2>
+              <h2>{editingId ? `Editar ${ENTITY_LABEL[form.role] || 'usuario'}` : `Nuevo ${ENTITY_LABEL[form.role] || 'usuario'}`}</h2>
               <button type="button" className="sy-modal__close" onClick={() => setModalOpen(false)} aria-label="Cerrar">
                 ×
               </button>
             </header>
+            <div className="sy-modal__body" style={{ paddingBottom: 0 }}>
+              <p className="sy-modal__intro" style={{ marginBottom: 18 }}>
+                {editingId
+                  ? `Actualiza los datos de este ${ENTITY_LABEL[form.role]?.toLowerCase() || 'usuario'}.`
+                  : `Crea un nuevo ${ENTITY_LABEL[form.role]?.toLowerCase() || 'usuario'} usando el formulario.`}
+              </p>
+            </div>
             <form className="sy-modal__body" onSubmit={handleSave}>
               <div className="sy-field">
                 <label htmlFor="user-name">Nombre</label>
@@ -414,6 +461,14 @@ export default function AdminUsers() {
           </div>
         </div>
       )}
+
+      <InfoModal
+        isOpen={successModalOpen}
+        title="Cambios exitosos"
+        message={successModalMessage}
+        buttonLabel="Aceptar"
+        onClose={() => setSuccessModalOpen(false)}
+      />
     </DoctorLayout>
   )
 }

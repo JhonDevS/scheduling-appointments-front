@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
+import BookingEditModal from '../components/layout/BookingEditModal'
 import { useAuth } from '../hooks'
 import { useAppointmentsBookingStore } from '../store/appointmentsBookingStore'
 import { useUsersAdminStore } from '../store/usersAdminStore'
@@ -18,13 +20,15 @@ function formatDate(dateKey) {
 }
 
 export default function DoctorUsers() {
+  const navigate = useNavigate()
   const { user } = useAuth()
   const doctors = useUsersAdminStore((s) => s.users)
   const bookings = useAppointmentsBookingStore((s) => s.bookings)
   const updateBooking = useAppointmentsBookingStore((s) => s.updateBooking)
 
   const [activePatientEmail, setActivePatientEmail] = useState(null)
-  const [draft, setDraft] = useState({ diagnosis: '', prescription: '', observations: '' })
+  const [selectedBooking, setSelectedBooking] = useState(null)
+  const [bookingEditOpen, setBookingEditOpen] = useState(false)
   const [message, setMessage] = useState('')
 
   const currentDoctor = useMemo(
@@ -85,38 +89,37 @@ export default function DoctorUsers() {
   }
 
   const activeBooking = useMemo(() => getActiveBookingForPatient(activePatient), [activePatient])
+  const isActiveBookingEditable =
+    activeBooking &&
+    activeBooking.status !== 'atendida' &&
+    activeBooking.status !== 'finalizada' &&
+    activeBooking.status !== 'cancelled'
 
   const handleTogglePatient = (email) => {
     const nextEmail = activePatientEmail === email ? null : email
     setActivePatientEmail(nextEmail)
     setMessage('')
-
-    if (nextEmail) {
-      const selectedPatient = patients.find((patient) => patient.email === email)
-      const booking = getActiveBookingForPatient(selectedPatient)
-      setDraft({
-        diagnosis: booking?.diagnosis || '',
-        prescription: booking?.prescription || '',
-        observations: booking?.observations || '',
-      })
-    }
   }
 
-  const handleFinalize = () => {
-    if (!activeBooking) {
-      setMessage('No hay una cita activa para procesar.')
-      return
-    }
+  const openPatientBookingModal = (booking) => {
+    setSelectedBooking(booking)
+    setBookingEditOpen(true)
+    setMessage('')
+  }
 
-    updateBooking(activeBooking.id, {
+  const handleSaveBooking = (draft) => {
+    if (!selectedBooking) return
+
+    updateBooking(selectedBooking.id, {
       status: 'atendida',
       diagnosis: draft.diagnosis.trim(),
       prescription: draft.prescription.trim(),
       observations: draft.observations.trim(),
     })
-
-    setMessage('Atención finalizada y guardada. La cita ahora figura como atendida.')
+    setBookingEditOpen(false)
+    setSelectedBooking(null)
     setActivePatientEmail(null)
+    navigate('/doctor')
   }
 
   return (
@@ -150,6 +153,9 @@ export default function DoctorUsers() {
         <div className="sy-table" style={{ marginTop: 24 }}>
           {patients.map((patient) => {
             const isActive = activePatientEmail === patient.email
+            const patientActiveBooking = getActiveBookingForPatient(patient)
+            const isPatientAttended = patientActiveBooking && ['atendida', 'finalizada'].includes(patientActiveBooking.status)
+
             return (
               <div
                 key={patient.email}
@@ -165,9 +171,19 @@ export default function DoctorUsers() {
                     <span style={{ color: 'var(--sy-teal)', fontSize: '0.95rem', fontWeight: 700 }}>
                       {patient.appointments} cita{patient.appointments > 1 ? 's' : ''}
                     </span>
-                    <button type="button" className="sy-btn sy-btn--outline" onClick={() => handleTogglePatient(patient.email)}>
-                      {isActive ? 'Cerrar' : 'Atender'}
-                    </button>
+                    {isActive ? (
+                      <button type="button" className="sy-btn sy-btn--outline" onClick={() => handleTogglePatient(patient.email)}>
+                        Cerrar
+                      </button>
+                    ) : isPatientAttended ? (
+                      <span style={{ padding: '10px 16px', borderRadius: 9999, background: '#e0f2fe', color: '#0369a1', fontWeight: 600 }}>
+                        Atendida
+                      </span>
+                    ) : (
+                      <button type="button" className="sy-btn sy-btn--outline" onClick={() => handleTogglePatient(patient.email)}>
+                        Atender
+                      </button>
+                    )}
                   </div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
@@ -195,43 +211,43 @@ export default function DoctorUsers() {
                           </p>
                         </div>
 
-                        <label style={{ display: 'block', marginBottom: 14 }}>
-                          <strong>Diagnóstico</strong>
-                          <textarea
-                            value={draft.diagnosis}
-                            onChange={(event) => setDraft((prev) => ({ ...prev, diagnosis: event.target.value }))}
-                            rows={4}
-                            style={{ width: '100%', marginTop: 8, resize: 'vertical', borderRadius: 12, border: '1px solid rgba(0,0,0,0.12)', padding: 12 }}
-                          />
-                        </label>
-
-                        <label style={{ display: 'block', marginBottom: 14 }}>
-                          <strong>Receta / Medicamentos</strong>
-                          <textarea
-                            value={draft.prescription}
-                            onChange={(event) => setDraft((prev) => ({ ...prev, prescription: event.target.value }))}
-                            rows={3}
-                            style={{ width: '100%', marginTop: 8, resize: 'vertical', borderRadius: 12, border: '1px solid rgba(0,0,0,0.12)', padding: 12 }}
-                          />
-                        </label>
-
-                        <label style={{ display: 'block', marginBottom: 18 }}>
-                          <strong>Observaciones</strong>
-                          <textarea
-                            value={draft.observations}
-                            onChange={(event) => setDraft((prev) => ({ ...prev, observations: event.target.value }))}
-                            rows={3}
-                            style={{ width: '100%', marginTop: 8, resize: 'vertical', borderRadius: 12, border: '1px solid rgba(0,0,0,0.12)', padding: 12 }}
-                          />
-                        </label>
+                        <div style={{ display: 'grid', gap: 12, marginBottom: 18 }}>
+                          <div>
+                            <strong>Diagnóstico</strong>
+                            <p style={{ margin: '8px 0 0', color: 'var(--sy-text-muted)' }}>
+                              {activeBooking.diagnosis || 'No registrado'}
+                            </p>
+                          </div>
+                          <div>
+                            <strong>Receta / Medicamentos</strong>
+                            <p style={{ margin: '8px 0 0', color: 'var(--sy-text-muted)' }}>
+                              {activeBooking.prescription || 'No registrada'}
+                            </p>
+                          </div>
+                          <div>
+                            <strong>Observaciones</strong>
+                            <p style={{ margin: '8px 0 0', color: 'var(--sy-text-muted)' }}>
+                              {activeBooking.observations || 'No hay observaciones'}
+                            </p>
+                          </div>
+                        </div>
 
                         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                          <button type="button" className="sy-btn sy-btn--primary" onClick={handleFinalize}>
-                            Finalizar atención
-                          </button>
-                          <button type="button" className="sy-btn sy-btn--outline" onClick={() => setActivePatientEmail(null)}>
-                            Cancelar
-                          </button>
+                          {isActiveBookingEditable ? (
+                            <>
+                              <button type="button" className="sy-btn sy-btn--primary" onClick={() => openPatientBookingModal(activeBooking)}>
+                                Editar diagnóstico
+                              </button>
+                              <button type="button" className="sy-btn sy-btn--outline" onClick={() => setActivePatientEmail(null)}>
+                                Cerrar
+                              </button>
+                            </>
+                          ) : (
+                            <div style={{ padding: 14, borderRadius: 12, background: '#f3f4f6', border: '1px solid var(--sy-border)', color: 'var(--sy-text-muted)', minWidth: 260 }}>
+                              <strong>Atención cerrada</strong>
+                              <p style={{ margin: '8px 0 0' }}>La cita ya está marcada como atendida y no puede editarse.</p>
+                            </div>
+                          )}
                         </div>
                       </>
                     ) : (
@@ -247,6 +263,17 @@ export default function DoctorUsers() {
             )
           })}
         </div>
+      )}
+      {selectedBooking && (
+        <BookingEditModal
+          isOpen={bookingEditOpen}
+          booking={selectedBooking}
+          onClose={() => {
+            setBookingEditOpen(false)
+            setSelectedBooking(null)
+          }}
+          onSave={handleSaveBooking}
+        />
       )}
     </div>
   )

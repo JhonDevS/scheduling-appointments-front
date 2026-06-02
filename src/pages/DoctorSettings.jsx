@@ -20,7 +20,7 @@ export default function DoctorSettings() {
     <div>
       <h1 style={{ margin: '0 0 8px' }}>Configuración</h1>
       <p style={{ color: 'var(--sy-text-muted)', marginBottom: 24 }}>
-        Preferencias del portal para {user?.nombreCompleto || 'su cuenta'}.
+        Preferencias del portal para {user?.nombreCompleto || user?.name || 'su cuenta'}.
       </p>
       <form className="sy-stats-card" onSubmit={handleSave} style={{ maxWidth: 480 }}>
         <label className="sy-checkbox">

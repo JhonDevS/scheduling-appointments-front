@@ -8,6 +8,8 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import TimeSlotGroup from '../components/booking/TimeSlotGroup'
 import AppFooter from '../components/layout/AppFooter'
 import AppNavbar from '../components/layout/AppNavbar'
+import ConfirmModal from '../components/layout/ConfirmModal'
+import ValidationModal from '../components/layout/ValidationModal'
 import { useAuth } from '../hooks'
 import { isSlotInPast, useAppointmentsBookingStore } from '../store/appointmentsBookingStore'
 import { useUsersAdminStore } from '../store/usersAdminStore'
@@ -84,6 +86,8 @@ export default function BookAppointment() {
   const [showAllDoctors, setShowAllDoctors] = useState(false)
   const [confirmError, setConfirmError] = useState('')
   const [confirmSuccess, setConfirmSuccess] = useState('')
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [showConfirmationErrorModal, setShowConfirmationErrorModal] = useState(false)
   const schedule = useMemo(() => getScheduleForDate(selectedDate), [selectedDate])
   const doctor = doctors.find((d) => d.id === selectedDoctor)
   const dateKey = toDateKey(selectedDate)
@@ -138,28 +142,9 @@ export default function BookAppointment() {
     return null
   }
 
-  const handleConfirm = () => {
-    if (!doctors.length) {
-      setConfirmError('No hay profesionales disponibles para agendar en este momento.')
-      return
-    }
+  const processBooking = () => {
     setConfirmError('')
-    setConfirmSuccess('')
-
-    if (!selectedTime) {
-      setConfirmError('Seleccione un horario disponible.')
-      return
-    }
-
-    if (!doctor || doctor.status !== 'active') {
-      setConfirmError('Seleccione un especialista activo para agendar la cita.')
-      return
-    }
-
-    if (isSlotDisabled(selectedTime)) {
-      setConfirmError('Este horario no está disponible. Elija otra franja.')
-      return
-    }
+    setShowConfirmModal(false)
 
     const isSameSlotAsOriginal =
       rescheduleAppointment?.id &&
@@ -177,12 +162,13 @@ export default function BookAppointment() {
       doctorId: selectedDoctor,
       dateKey,
       time: selectedTime,
-      patientName: user?.nombreCompleto || 'Paciente',
+      patientName: user?.nombreCompleto || user?.name || 'Paciente',
       patientEmail: user?.email || '',
     })
 
     if (!result.success) {
       setConfirmError(result.error)
+      setShowConfirmationErrorModal(true)
       return
     }
 
@@ -194,6 +180,37 @@ export default function BookAppointment() {
     }
 
     navigate('/dashboard')
+  }
+
+  const handleConfirm = () => {
+    if (!doctors.length) {
+      setConfirmError('No hay profesionales disponibles para agendar en este momento.')
+      setShowConfirmationErrorModal(true)
+      return
+    }
+    setConfirmError('')
+    setConfirmSuccess('')
+    setShowConfirmationErrorModal(false)
+
+    if (!selectedTime) {
+      setConfirmError('Seleccione un horario disponible.')
+      setShowConfirmationErrorModal(true)
+      return
+    }
+
+    if (!doctor || doctor.status !== 'active') {
+      setConfirmError('Seleccione un especialista activo para agendar la cita.')
+      setShowConfirmationErrorModal(true)
+      return
+    }
+
+    if (isSlotDisabled(selectedTime)) {
+      setConfirmError('Este horario no está disponible. Elija otra franja.')
+      setShowConfirmationErrorModal(true)
+      return
+    }
+
+    setShowConfirmModal(true)
   }
 
   const checkSlotBooked = (time) => isSlotBooked(selectedDoctor, dateKey, time)
@@ -349,9 +366,12 @@ export default function BookAppointment() {
                 {doctor?.specialty && <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--sy-text-muted)' }}>{doctor.specialty}</p>}
               </div>
 
-              {confirmError && (
-                <p className="sy-booking-alert sy-booking-alert--error">{confirmError}</p>
-              )}
+              <ValidationModal
+                isOpen={showConfirmationErrorModal && Boolean(confirmError)}
+                title="Validación"
+                messages={confirmError ? [confirmError] : []}
+                onClose={() => setShowConfirmationErrorModal(false)}
+              />
               {confirmSuccess && (
                 <p className="sy-booking-alert sy-booking-alert--ok">{confirmSuccess}</p>
               )}
@@ -362,7 +382,7 @@ export default function BookAppointment() {
                 onClick={handleConfirm}
                 disabled={!selectedTime || isSlotDisabled(selectedTime)}
               >
-                Confirmar cita
+                {rescheduleAppointment ? 'Reagendar cita' : 'Confirmar cita'}
               </button>
               <p className="sy-booking-slots-legend">
                 <span className="sy-legend-swatch sy-legend-swatch--available" /> Seleccionable
@@ -391,6 +411,19 @@ export default function BookAppointment() {
         </div>
       </main>
 
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        title={rescheduleAppointment ? 'Reagendar cita' : 'Confirmar cita'}
+        message={
+          rescheduleAppointment
+            ? '¿Deseas confirmar la reprogramación de esta cita con el especialista seleccionado?' 
+            : '¿Deseas confirmar esta cita con el especialista seleccionado?'
+        }
+        confirmLabel={rescheduleAppointment ? 'Reagendar' : 'Agendar'}
+        cancelLabel="Cancelar"
+        onConfirm={processBooking}
+        onCancel={() => setShowConfirmModal(false)}
+      />
       <AppFooter />
     </div>
   )
