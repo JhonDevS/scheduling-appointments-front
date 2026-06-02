@@ -35,7 +35,7 @@ Desarrollada con **React 19**, **Vite 7**, **React Router 7** y **Zustand**.
 | **Mis citas** | Próximas citas e historial |
 | **Panel paciente** | Dashboard, salud y recetas |
 | **Portal médico** | Cronograma y disponibilidad |
-| **Admin** | Gestión de usuarios |
+| **Admin** | Gestión de usuarios y validaciones |
 | **Responsive** | Navegación móvil y portal adaptable en escritorio/tablet/móvil |
 
 ---
