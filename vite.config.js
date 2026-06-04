@@ -2,7 +2,7 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react-swc'
 import { defineConfig } from 'vite'
 
-
+const nodeMajor = Number(process.versions.node.split('.')[0])
 
 const coverage90 = { lines: 90, functions: 90, branches: 85, statements: 90 }
 
@@ -21,6 +21,8 @@ export default defineConfig({
     globals: true,
 
     environment: 'jsdom',
+
+    ...(nodeMajor >= 25 ? { execArgv: ['--no-webstorage'] } : {}),
 
     setupFiles: ['./tests/setup.js'],
 

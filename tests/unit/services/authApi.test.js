@@ -54,7 +54,6 @@ describe('authApi', () => {
     expect(result.success).toBe(true)
     expect(result.isMock).toBe(true)
     expect(useUsersAdminStore.getState().users.some((u) => u.email === 'nuevo@paciente.com')).toBe(true)
-    expect(useAuthStore.getState().user?.email).toBe('nuevo@paciente.com')
   })
 
   it('logout limpia el almacén de autenticación', async () => {

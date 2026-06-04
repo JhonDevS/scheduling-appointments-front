@@ -24,14 +24,14 @@ describe('bookingSchedule', () => {
     expect(parseTime12h('invalid')).toBeNull()
   })
 
-  it('no permite domingos ni festivos', () => {
+  it('no permite domingos ni fechas pasadas', () => {
     const sunday = new Date(2026, 4, 24)
-    const holiday = new Date(2026, 4, 25)
+    const pastWeekday = new Date(2026, 4, 25)
 
     expect(isDateBookable(sunday)).toBe(false)
-    expect(isDateBookable(holiday)).toBe(false)
+    expect(isDateBookable(pastWeekday)).toBe(false)
     expect(getDisabledReason(sunday)).toMatch(/domingo/i)
-    expect(getDisabledReason(holiday)).toMatch(/festivo/i)
+    expect(getDisabledReason(pastWeekday)).toMatch(/fecha pasada/i)
   })
 
   it('habilita los lunes para agendar citas', () => {
