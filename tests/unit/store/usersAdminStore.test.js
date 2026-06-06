@@ -20,8 +20,14 @@ describe('usersAdminStore', () => {
   })
 
   it('actualiza y elimina usuario', () => {
-    const { users, updateUser, removeUser } = useUsersAdminStore.getState()
-    const id = users[0].id
+    const created = useUsersAdminStore.getState().addUser({
+      name: 'Original',
+      email: 'original@test.com',
+      role: 'patient',
+      status: 'active',
+    })
+    const { updateUser, removeUser } = useUsersAdminStore.getState()
+    const id = created.id
     updateUser(id, { name: 'Actualizado' })
     expect(useUsersAdminStore.getState().getUserById(id).name).toBe('Actualizado')
     removeUser(id)

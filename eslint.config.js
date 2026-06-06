@@ -8,6 +8,12 @@ import globals from 'globals'
 export default defineConfig([
 	globalIgnores(['dist', 'coverage', 'tests']),
   {
+    files: ['vite.config.js', 'eslint.config.js'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
+  {
     files: ['**/*.{js,jsx}'],
     extends: [
       js.configs.recommended,

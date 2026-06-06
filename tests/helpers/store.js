@@ -1,6 +1,5 @@
 import { useAppointmentsBookingStore } from '../../src/store/appointmentsBookingStore'
 import { useAuthStore } from '../../src/store/authStore'
-import { useDoctorAvailabilityStore } from '../../src/store/doctorAvailabilityStore'
 import { useNewsletterStore } from '../../src/store/newsletterStore'
 import { usePrescriptionRenewalsStore } from '../../src/store/prescriptionRenewalsStore'
 import { useUsersAdminStore } from '../../src/store/usersAdminStore'
@@ -58,8 +57,7 @@ export function resetNewsletterStore() {
 }
 
 export function resetDoctorAvailabilityStore() {
-  useDoctorAvailabilityStore.persist.clearStorage()
-  useDoctorAvailabilityStore.setState({ slots: [] })
+  // No-op: el store doctorAvailabilityStore aún no existe en src/store.
 }
 
 export function resetPrescriptionRenewalsStore() {

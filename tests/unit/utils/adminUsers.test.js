@@ -31,7 +31,13 @@ describe('adminUsers utils', () => {
   })
 
   it('pagina resultados', () => {
-    const page = paginateUsers(USERS, 1, ADMIN_PAGE_SIZE)
+    const users = Array.from({ length: 13 }, (_, index) => ({
+      id: String(index + 1),
+      role: 'patient',
+      status: 'active',
+    }))
+
+    const page = paginateUsers(users, 1, ADMIN_PAGE_SIZE)
     expect(page.items).toHaveLength(ADMIN_PAGE_SIZE)
     expect(page.totalPages).toBe(2)
   })

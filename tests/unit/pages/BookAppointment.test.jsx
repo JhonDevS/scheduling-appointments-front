@@ -2,59 +2,78 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { AuthProvider } from '../../../src/hooks'
 import mockUsers from '../../../src/mocks/data/users.json'
 import BookAppointment from '../../../src/pages/BookAppointment'
-import adminUsersService from '../../../src/services/adminUsersService'
 import { resetUsersAdminStore, seedAuthenticatedUser } from '../../helpers/store'
+
+const { listDoctorsMock } = vi.hoisted(() => ({
+  listDoctorsMock: vi.fn(),
+}))
 
 vi.mock('../../../src/services/adminUsersService', () => ({
   default: {
-    list: vi.fn(),
+    list: listDoctorsMock,
   },
 }))
+
+vi.mock('../../../src/hooks', async () => {
+  const actual = await vi.importActual('../../../src/hooks')
+
+  return {
+    ...actual,
+    useAuth: () => ({
+      user: {
+        email: 'paciente@saludya.com',
+        nombreCompleto: 'Paciente Prueba',
+      },
+      isAuthenticated: true,
+      isLoading: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+      register: vi.fn(),
+      loginWithOAuth: vi.fn(),
+    }),
+  }
+})
 
 describe('BookAppointment', () => {
   beforeEach(() => {
     resetUsersAdminStore()
     seedAuthenticatedUser()
-    vi.mocked(adminUsersService.list).mockResolvedValue(mockUsers)
+    listDoctorsMock.mockResolvedValue(mockUsers)
   })
 
-  it('muestra el doctor seleccionado al reprogramar aunque no esté en los primeros 6', async () => {
+  it('muestra el doctor seleccionado al reprogramar aunque no esté en los primeros 4', async () => {
     const doctors = mockUsers.filter((u) => u.role === 'doctor')
     const selectedDoctor = doctors[6]
 
     const { container } = render(
-      <AuthProvider>
-        <MemoryRouter
-          initialEntries={[
-            {
-              pathname: '/book',
-              state: {
-                rescheduleAppointment: {
-                  id: 'test-appointment',
-                  doctorId: selectedDoctor.id,
-                  dateKey: '2026-05-26',
-                  time: '09:00 AM',
-                },
+      <MemoryRouter
+        initialEntries={[
+          {
+            pathname: '/book',
+            state: {
+              rescheduleAppointment: {
+                id: 'test-appointment',
+                doctorId: selectedDoctor.id,
+                dateKey: '2026-05-26',
+                time: '09:00 AM',
               },
             },
-          ]}
-        >
-          <BookAppointment />
-        </MemoryRouter>
-      </AuthProvider>,
+          },
+        ]}
+      >
+        <BookAppointment />
+      </MemoryRouter>,
     )
 
     await waitFor(() => {
-      expect(container.querySelectorAll('.sy-doctor-card').length).toBeGreaterThan(6)
+      expect(screen.queryByText(/Cargando especialistas/i)).not.toBeInTheDocument()
     })
 
-    const doctorCards = container.querySelectorAll('.sy-doctor-card')
-    expect(
-      Array.from(doctorCards).some((card) => card.textContent.includes(selectedDoctor.name)),
-    ).toBe(true)
+    expect(screen.getAllByText(selectedDoctor.name).length).toBeGreaterThan(0)
+
+    expect(container.querySelectorAll('.sy-doctor-card').length).toBe(5)
     expect(screen.getByRole('button', { name: /Lista completa/i })).toBeInTheDocument()
   })
 })
