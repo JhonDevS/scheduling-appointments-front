@@ -9,6 +9,7 @@ import TimeSlotGroup from '../components/booking/TimeSlotGroup'
 import AppFooter from '../components/layout/AppFooter'
 import AppNavbar from '../components/layout/AppNavbar'
 import { useAuth } from '../hooks'
+import { appointmentsService } from '../services'
 import adminUsersService from '../services/adminUsersService'
 import { isSlotInPast, useAppointmentsBookingStore } from '../store/appointmentsBookingStore'
 import { useUsersAdminStore } from '../store/usersAdminStore'
@@ -183,7 +184,7 @@ export default function BookAppointment() {
     return null
   }
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!doctors.length) {
       setConfirmError('No hay profesionales disponibles para agendar en este momento.')
       return
@@ -215,6 +216,20 @@ export default function BookAppointment() {
     if (isSameSlotAsOriginal) {
       setConfirmSuccess('¡Cita reprogramada! La cita permanece en el mismo horario.')
       navigate('/dashboard')
+      return
+    }
+
+    try {
+      await appointmentsService.createAppointment({
+        doctorId: resolvedDoctorId,
+        dateKey,
+        time: resolvedTime,
+        patientName: user?.nombreCompleto || 'Paciente',
+        patientEmail: user?.email || '',
+      })
+    } catch (error) {
+      console.error('No se pudo crear la cita en el servidor', error)
+      setConfirmError('No se pudo confirmar la cita. Intenta de nuevo más tarde.')
       return
     }
 

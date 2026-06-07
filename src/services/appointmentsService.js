@@ -26,9 +26,38 @@ export const appointmentsService = {
   },
 
   async createAppointment(appointmentData) {
+    const {
+      doctorId,
+      dateKey,
+      time,
+      durationMinutes = 30,
+      notes,
+    } = appointmentData
+
+    const [timePart, period] = String(time).split(' ')
+    const [hhStr, mmStr] = timePart.split(':')
+    const hh = Number(hhStr)
+    const mm = Number(mmStr)
+    const isPm = String(period).toUpperCase() === 'PM'
+
+    let hour24 = hh % 12
+    if (isPm) hour24 += 12
+
+    const hourStr = String(hour24).padStart(2, '0')
+    const minuteStr = String(mm).padStart(2, '0')
+
+    const start = `${dateKey}T${hourStr}:${minuteStr}:00`
+    const startDate = new Date(start)
+    const endDate = new Date(startDate.getTime() + durationMinutes * 60 * 1000)
+    const end = endDate.toISOString().slice(0, 19) // YYYY-MM-DDTHH:mm:ss
+
     const payload = {
-      ...appointmentData,
+      medicoId: Number(doctorId),
+      start,
+      end,
+      notes: notes || null,
     }
+
     const response = await api.post(endpoints.appointments.create, payload)
     return response.data ?? response
   },

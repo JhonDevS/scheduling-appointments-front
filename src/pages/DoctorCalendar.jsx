@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import { useAuth } from '../hooks'
+import appointmentsService from '../services/appointmentsService'
 import availabilityService from '../services/availabilityService'
-import { useAppointmentsBookingStore } from '../store/appointmentsBookingStore'
 import { useUsersAdminStore } from '../store/usersAdminStore'
 
 function sortByDateTime(a, b) {
@@ -18,22 +18,65 @@ export default function DoctorCalendar() {
     () => doctors.find((doc) => doc.role === 'doctor' && doc.email?.toLowerCase() === user?.email?.toLowerCase()),
     [doctors, user?.email],
   )
-  const doctorId = currentDoctor?.id ?? 'SY-2024-81'
+  const doctorId = user?.id ?? currentDoctor?.id ?? null
 
-  const bookings = useAppointmentsBookingStore((s) => s.bookings)
+  const [appointments, setAppointments] = useState([])
+
   const [baseSlots, setBaseSlots] = useState([])
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [slotsError, setSlotsError] = useState('')
 
   const doctorBookings = useMemo(
-    () => bookings.filter((booking) => booking.doctorId === doctorId),
-    [bookings, doctorId],
+    () => {
+      if (!doctorId) return []
+
+      return appointments
+        .map((apt) => {
+          const start = new Date(apt.start)
+          const dateKey = start.toISOString().slice(0, 10)
+          const time = start.toLocaleTimeString('es-CO', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+          })
+
+          return {
+            id: apt.id,
+            dateKey,
+            time,
+            patientName: apt.patientName || 'Paciente',
+            patientEmail: apt.patientEmail || '',
+          }
+        })
+    },
+    [appointments, doctorId],
   )
 
   const sortedBookings = useMemo(
     () => doctorBookings.slice().sort(sortByDateTime),
     [doctorBookings],
   )
+
+  useEffect(() => {
+    let mounted = true
+
+    const loadAppointments = async () => {
+      try {
+        const data = await appointmentsService.getAllAppointments()
+        if (!mounted) return
+        setAppointments(Array.isArray(data) ? data : [])
+      } catch (error) {
+        if (!mounted) return
+        console.error('No se pudieron cargar las citas del médico', error)
+      }
+    }
+
+    loadAppointments()
+
+    return () => {
+      mounted = false
+    }
+  }, [])
 
   useEffect(() => {
     let mounted = true
