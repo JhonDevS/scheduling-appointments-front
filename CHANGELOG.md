@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [0.0.4](https://github.com/JhonDevS/scheduling-appointments-front/compare/v0.0.3...v0.0.4) (2026-06-07)
+### [0.0.5](https://github.com/JhonDevS/scheduling-appointments-front/compare/v0.0.4...v0.0.5) (2026-06-06)
+
+
+### Bug Fixes
+
+* solved error in validation auth with back ([95aa9ba](https://github.com/JhonDevS/scheduling-appointments-front/commit/95aa9ba258ebbe94fedae8f1c9efb7a6f04de04f))
+
+### [0.0.4](https://github.com/JhonDevS/scheduling-appointments-front/compare/v0.0.3...v0.0.4) (2026-06-06)
 
 
 ### Features

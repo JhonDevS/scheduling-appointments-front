@@ -1,9 +1,9 @@
 /* eslint-disable react-hooks/preserve-manual-memoization */
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 
 import { useAuth } from '../hooks'
-import { useAppointmentsBookingStore } from '../store/appointmentsBookingStore'
+import appointmentsService from '../services/appointmentsService'
 import { useUsersAdminStore } from '../store/usersAdminStore'
 import { getDateInTimeZone, toDateKey } from '../utils/colombianHolidays'
 import { filterBySearch } from '../utils/doctorSchedule'
@@ -17,15 +17,14 @@ export default function DoctorDashboard() {
   const [scheduleView, setScheduleView] = useState('day')
   const [dateTab, setDateTab] = useState('today')
   const [showAllPatients, setShowAllPatients] = useState(false)
-
-  const bookings = useAppointmentsBookingStore((s) => s.bookings)
+  const [appointments, setAppointments] = useState([])
 
   const currentDoctor = useMemo(
     () => doctors.find((doc) => doc.role === 'doctor' && doc.email?.toLowerCase() === user?.email?.toLowerCase()),
     [doctors, user?.email],
   )
 
-  const doctorId = currentDoctor?.id ?? 'SY-2024-81'
+  const doctorId = user?.id ?? currentDoctor?.id ?? null
   const doctorName = currentDoctor?.name ?? user?.nombreCompleto ?? 'el doctor'
 
   const today = getDateInTimeZone(new Date())
@@ -48,8 +47,32 @@ export default function DoctorDashboard() {
   ]
 
   const appointmentsForDoctor = useMemo(
-    () => bookings.filter((booking) => booking.doctorId === doctorId),
-    [bookings, doctorId],
+    () => {
+      if (!doctorId) return []
+
+      // El backend ya filtra por alcance cuando el rol es doctor.
+      // Aun así, filtramos por doctorId por seguridad para escenarios de admin.
+      return appointments
+        .filter((apt) => apt.doctorId == null || Number(apt.doctorId) === Number(doctorId))
+        .map((apt) => {
+          const start = new Date(apt.start)
+          const dateKey = start.toISOString().slice(0, 10)
+          const time = start.toLocaleTimeString('es-CO', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+          })
+
+          return {
+            id: apt.id,
+            dateKey,
+            time,
+            patientName: apt.patientName || 'Paciente',
+            patientEmail: apt.patientEmail || '',
+          }
+        })
+    },
+    [appointments, doctorId],
   )
 
   const todayBookings = useMemo(
@@ -119,6 +142,28 @@ export default function DoctorDashboard() {
 
   const weekRangeLabel = `${today.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })} - ${weekEnd.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })}`
 
+  useEffect(() => {
+    let mounted = true
+
+    const loadAppointments = async () => {
+
+      try {
+        const data = await appointmentsService.getAllAppointments()
+        if (!mounted) return
+        setAppointments(Array.isArray(data) ? data : [])
+      } catch (error) {
+        if (!mounted) return
+        console.error('No se pudieron cargar las citas del médico para el dashboard', error)
+      }
+    }
+
+    loadAppointments()
+
+    return () => {
+      mounted = false
+    }
+  }, [])
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 20 }}>
@@ -128,17 +173,17 @@ export default function DoctorDashboard() {
             Tienes {weeklyBookings.length} citas programadas para esta semana. Cambia a la vista de Semana para ver todos los pacientes y turnos.
           </p>
         </div>
-        <div className="sy-portal-stats">
-          <div className="sy-stat-mini">
-            <span>TOTAL DE CITAS</span>
-            <strong>{appointmentsForDoctor.length}</strong>
-            <small style={{ color: 'var(--sy-success)' }}>{todayBookings.length} hoy</small>
+          <div className="sy-portal-stats">
+            <div className="sy-stat-mini">
+              <span>TOTAL DE CITAS</span>
+              <strong>{appointmentsForDoctor.length}</strong>
+              <small style={{ color: 'var(--sy-success)' }}>{todayBookings.length} hoy</small>
+            </div>
+            <div className="sy-stat-mini">
+              <span>PRÓXIMA CITA</span>
+              <strong>{nextAppointment ? `${nextAppointment.patientName || nextAppointment.patient} • ${nextAppointment.time}` : 'Sin citas'}</strong>
+            </div>
           </div>
-          <div className="sy-stat-mini">
-            <span>PRÓXIMA CITA</span>
-            <strong>{nextAppointment ? `${nextAppointment.patient} • ${nextAppointment.time}` : 'Sin citas'}</strong>
-          </div>
-        </div>
       </div>
 
       <div className="sy-portal-grid">

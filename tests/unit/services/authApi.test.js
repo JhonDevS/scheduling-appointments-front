@@ -28,11 +28,15 @@ describe('authApi', () => {
     expect(useAuthStore.getState().token).toBeTruthy()
   })
 
-  it('login usa mock cuando el backend no responde', async () => {
+  it('login falla cuando el backend no responde y no crea sesión mock', async () => {
+    vi.spyOn(api, 'post').mockRejectedValue({ code: 'ERR_NETWORK' })
+
     const result = await authApi.login('dev@saludya.com', 'cualquier-password')
 
-    expect(result.success).toBe(true)
-    expect(result.user?.email).toBe('dev@saludya.com')
+    expect(result.success).toBe(false)
+    expect(result.user).toBeUndefined()
+    expect(useAuthStore.getState().token).toBeNull()
+    expect(useAuthStore.getState().user).toBeNull()
   })
 
   it('requestPasswordReset responde en modo mock sin backend', async () => {

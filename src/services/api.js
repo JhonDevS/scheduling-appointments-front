@@ -65,50 +65,35 @@ function formatMockNameFromEmail(email) {
     .join(' ') || 'Usuario Demo'
 }
 
-function createMockUser(email) {
-  const fullName = formatMockNameFromEmail(email)
-  return {
-    id: Date.now(),
-    email,
-    name: fullName,
-    nombreCompleto: fullName,
-    role: 'patient',
-    status: 'active',
-  }
-}
-
-// Funciones utilitarias para auth
-export const authApi = {
-  login: async (email, password) => {
-    try {
-      const response = await api.post('/auth/login', { email, password })
-      
-      // El backend devuelve { success, message, data: { usuario, token } }
-      if (response.success && response.data?.token) {
-        useAuthStore.getState().setToken(response.data.token)
-        useAuthStore.getState().setUser(response.data.usuario)
-        return { success: true, user: response.data.usuario }
-      }
-      
-      return { success: false, error: response.error?.message || 'Error al iniciar sesión' }
-    } catch (error) {
-      // Si el backend no está disponible, usar mock
-      if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED' || error.response?.status === 404 || !error.response) {
-        console.log('Backend no disponible, usando mock data')
-        const existingUser = useUsersAdminStore.getState().users.find((u) => u.email?.toLowerCase() === email.toLowerCase())
-        const mockUser = existingUser || createMockUser(email)
-        if (!existingUser) {
-          useUsersAdminStore.getState().addUser(mockUser)
+  // Funciones utilitarias para auth
+  export const authApi = {
+    login: async (email, password) => {
+      try {
+        const response = await api.post('/auth/login', { email, password })
+        
+        // El backend devuelve { success, message, data: { usuario, token } }
+        if (response.success && response.data?.token) {
+          useAuthStore.getState().setToken(response.data.token)
+          useAuthStore.getState().setUser(response.data.usuario)
+          return { success: true, user: response.data.usuario }
         }
-        useAuthStore.getState().setToken(MOCK_TOKEN)
-        useAuthStore.getState().setUser(mockUser)
-        return { success: true, user: mockUser, isMock: true }
+        
+        return { success: false, error: response.error?.message || 'Error al iniciar sesión' }
+      } catch (error) {
+        const isNetworkError =
+          error.code === 'ERR_NETWORK' ||
+          error.code === 'ECONNREFUSED' ||
+          !error.response
+
+        const message =
+          (isNetworkError && 'No se pudo conectar con el servidor de autenticación.') ||
+          error.response?.data?.error?.message ||
+          'Credenciales inválidas'
+
+        // Importante: nunca hacer login mock ni marcar success=true si el backend falla
+        return { success: false, error: message }
       }
-      
-      const message = error.response?.data?.error?.message || 'Credenciales inválidas'
-      return { success: false, error: message }
-    }
-  },
+    },
   
   register: async (userData) => {
     try {

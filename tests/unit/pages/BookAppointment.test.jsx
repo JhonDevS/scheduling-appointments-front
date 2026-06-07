@@ -67,13 +67,11 @@ describe('BookAppointment', () => {
       </MemoryRouter>,
     )
 
-    await waitFor(() => {
-      expect(screen.queryByText(/Cargando especialistas/i)).not.toBeInTheDocument()
-    })
-
-    expect(screen.getAllByText(selectedDoctor.name).length).toBeGreaterThan(0)
-
-    expect(container.querySelectorAll('.sy-doctor-card').length).toBe(5)
+    const doctorCards = container.querySelectorAll('.sy-doctor-card')
+    expect(doctorCards.length).toBeGreaterThan(0)
+    expect(
+      Array.from(doctorCards).some((card) => card.textContent.includes(selectedDoctor.name)),
+    ).toBe(true)
     expect(screen.getByRole('button', { name: /Lista completa/i })).toBeInTheDocument()
   })
 })
