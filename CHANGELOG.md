@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.7](https://github.com/JhonDevS/scheduling-appointments-front/compare/v0.0.5...v0.0.7) (2026-06-07)
+
+
+### Features
+
+* unit test ([094d599](https://github.com/JhonDevS/scheduling-appointments-front/commit/094d5997bdceca8158a6540670e9b99218fd609a))
+
+
+### Bug Fixes
+
+* solved error in scheduling ([76974ff](https://github.com/JhonDevS/scheduling-appointments-front/commit/76974ff8343cee788443976c7090b82ed31652c4))
+* solved error in scheduling ([ac47a1b](https://github.com/JhonDevS/scheduling-appointments-front/commit/ac47a1b7e5b61460263df22509331f26c87d7d08))
+* solved error in scheduling ([1335d97](https://github.com/JhonDevS/scheduling-appointments-front/commit/1335d97bdd244c1291b57b452c24ec063bb05b5a))
+
 ### [0.0.6](https://github.com/JhonDevS/scheduling-appointments-front/compare/v0.0.5...v0.0.6) (2026-06-07)
 
 
