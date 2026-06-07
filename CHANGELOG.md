@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.6](https://github.com/JhonDevS/scheduling-appointments-front/compare/v0.0.5...v0.0.6) (2026-06-07)
+
+
+### Features
+
+* unit test ([094d599](https://github.com/JhonDevS/scheduling-appointments-front/commit/094d5997bdceca8158a6540670e9b99218fd609a))
+
 ### [0.0.5](https://github.com/JhonDevS/scheduling-appointments-front/compare/v0.0.4...v0.0.5) (2026-06-06)
 
 
