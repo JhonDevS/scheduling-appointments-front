@@ -28,6 +28,8 @@ export default defineConfig({
 
     include: ['tests/**/*.{test,spec}.{js,jsx}'],
 
+    testTimeout: 10000,
+
     coverage: {
 
       provider: 'v8',

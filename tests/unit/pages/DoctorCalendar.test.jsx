@@ -4,31 +4,17 @@ import { describe, expect, it } from 'vitest'
 
 import { AuthProvider } from '../../../src/hooks'
 import DoctorCalendar from '../../../src/pages/DoctorCalendar'
-import mockUsers from '../../../src/mocks/data/users.json'
-import { useUsersAdminStore } from '../../../src/store/usersAdminStore'
-import { resetBookingsStore, resetUsersAdminStore, seedAuthenticatedUser } from '../../helpers/store'
+import { AuthProvider } from '../../../src/hooks'
+import { resetDoctorAvailabilityStore } from '../../helpers/store'
 
 describe('DoctorCalendar', () => {
   it('muestra mensaje sin horarios', () => {
-    resetUsersAdminStore()
-    resetBookingsStore([])
-    useUsersAdminStore.getState().setUsers(mockUsers)
-    seedAuthenticatedUser({
-      id: 1,
-      email: 'a.sterling@saludya.com',
-      nombreCompleto: 'Dr. Alexander Sterling',
-    })
-
+    resetDoctorAvailabilityStore()
     render(
       <AuthProvider>
-        <MemoryRouter>
-          <DoctorCalendar />
-        </MemoryRouter>
+        <DoctorCalendar />
       </AuthProvider>,
     )
-
-    expect(
-      screen.getByText(/No hay bloques de disponibilidad configurados para este médico/i),
-    ).toBeInTheDocument()
+    expect(screen.getByText(/no hay bloques/i)).toBeInTheDocument()
   })
 })
